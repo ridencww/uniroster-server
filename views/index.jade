@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1= title
+  div
+    table
+      thead
+        tr
+          th Description
+          th client_id
+          th client_password
+      tbody
+          - var i = -1
+          each item in data
+            - ++i
+            tr(class=(i % 2 == 0) ? 'odd' : 'even')
+              td=item.description
+              td=item.client_id
+              td=item.client_password
