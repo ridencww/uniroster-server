@@ -50,9 +50,9 @@ var buildClass = function(row, hrefBase, metaFields) {
     clazz.school = school;
   }
 
-  if (row.termsSourcedId) {
+  if (row.termSourcedId) {
     var terms = [];
-    var fields = row.termsSourcedId.toString().split(",");
+    var fields = row.termSourcedId.toString().split(",");
     fields.forEach(function(sid) {
       var term = {};
       term.href = hrefBase + '/academicSession/' + sid;
@@ -158,7 +158,7 @@ var queryClasses = function(req, res, next) {
 };
 
 var queryClassesFromAnchor = function(req, res, next, anchorTableField) {
-  db.setup(req, res, function(connection, hrefBase, type) {
+  db.setup(req, res, function(connection, hrefBase) {
     db.tableFields(connection, 'classes', function(fields) {
       var select = utils.buildSelectStmt(req, res, fields);
       if (select === null) {

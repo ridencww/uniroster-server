@@ -19,11 +19,35 @@ var buildEnrollment = function(row, hrefBase, metaFields) {
     enrollment.metadata = metadata;
   }
 
-  enrollment.userSourcedId = row.userSourcedId;
-  enrollment.classSourcedId = row.classSourcedId;
-  enrollment.schoolSourcedId = row.schoolSourcedId;
+  if (row.userSourcedId){
+    var user = {};
+    user.href = hrefBase + '/users/' + row.userSourcedId;
+    user.sourcedId = row.userSourcedId;
+    user.type = 'user';
+    enrollment.user = user;
+  }
+
+  if (row.classSourcedId){
+    var clazz = {};
+    clazz.href = hrefBase + '/classes/' + row.classSourcedId;
+    clazz.sourcedId = row.classSourcedId;
+    clazz.type = 'class';
+    enrollment.class = clazz;
+  }
+
+  if (row.schoolSourcedId){
+    var org = {};
+    org.href = hrefBase + '/orgs/' + row.schoolSourcedId;
+    org.sourcedId = row.schoolSourcedId;
+    org.type = 'org';
+    enrollment.school = org;
+  }
+
   enrollment.role = row.role;
-  enrollment.primary = row.primary;
+
+  if (enrollment.primary) {
+    enrollment.primary = row.primary.toLowerCase();
+  }
 
   return enrollment;
 };

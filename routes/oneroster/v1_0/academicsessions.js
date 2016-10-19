@@ -50,7 +50,7 @@ var buildAcademicSession = function(row, hrefBase, metaFields) {
 
 var queryAcademicSession = function(req, res, next, type) {
   db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'academicSessions', function(fields) {
+    db.tableFields(connection, 'academicsessions', function(fields) {
       var select = utils.buildSelectStmt(req, res, fields);
       if (select === null) {
         connection.release();
@@ -69,7 +69,7 @@ var queryAcademicSession = function(req, res, next, type) {
         return;
       }
 
-      var sql = select + 'FROM academicSessions ';
+      var sql = select + 'FROM academicsessions ';
       sql += where;
       sql += orderBy;
       sql += utils.buildLimitStmt(req);
@@ -96,7 +96,7 @@ var queryAcademicSession = function(req, res, next, type) {
 
 var queryAcademicSessions = function(req, res, next, type) {
   db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'academicSessions', function(fields) {
+    db.tableFields(connection, 'academicsessions', function(fields) {
       var select = utils.buildSelectStmt(req, res, fields);
       if (select === null) {
         connection.release();
@@ -115,7 +115,7 @@ var queryAcademicSessions = function(req, res, next, type) {
         return;
       }
 
-      var sql = select + 'FROM academicSessions ';
+      var sql = select + 'FROM academicsessions ';
       sql += where;
       sql += orderBy;
       sql += utils.buildLimitStmt(req);
@@ -141,7 +141,7 @@ var queryAcademicSessions = function(req, res, next, type) {
 
 var queryAcademicSessionsForSchool = function(req, res, next, type) {
   db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'academicSessions', function(fields) {
+    db.tableFields(connection, 'academicsessions', function(fields) {
       var select = utils.buildSelectStmt(req, res, fields, 'a');
       if (select === null) {
         connection.release();
@@ -162,7 +162,7 @@ var queryAcademicSessionsForSchool = function(req, res, next, type) {
 
       select = select.replace('SELECT ', 'SELECT DISTINCT ');
 
-      var sql = select + 'FROM academicSessions a, classes c ';
+      var sql = select + 'FROM academicsessions a, classes c ';
       sql += where;
       sql += orderBy;
       sql += utils.buildLimitStmt(req);
