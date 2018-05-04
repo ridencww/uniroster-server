@@ -23,7 +23,17 @@ var buildUser = function(row, hrefBase, metaFields) {
   user.metadata = metadata;
 
   user.username = row.username;
-  user.userId = row.userId;
+
+  if (hrefBase.indexOf("ims/oneroster") !== -1) {
+    user.userIds = [];
+    var userId = {};
+    userId.type = 'districtID';
+    userId.identifier = row.userId;
+    user.userIds.push(userId);
+  } else {
+    user.userId = row.userId;
+  }
+
   user.givenName = row.givenName;
   user.familyName = row.familyName;
   user.role = row.role;
@@ -35,7 +45,7 @@ var buildUser = function(row, hrefBase, metaFields) {
   // Parents/guardians -- not used at present
   //user.agents = null;
 
-  if (row.demographics) {
+  if (hrefBase.indexOf("ims/oneroster") === -1 && row.demographics) {
     var demographics = {};
     demographics.href = hrefBase + '/demographics/' + row.demographics;
     demographics.sourcedId = row.demographics;

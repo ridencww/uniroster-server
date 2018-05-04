@@ -15,6 +15,10 @@ var demographics_oneroster_1_0 = require('./routes/oneroster/v1_0/demographics')
 var enrollments_oneroster_1_0 = require('./routes/oneroster/v1_0/enrollments');
 var orgs_oneroster_1_0 = require('./routes/oneroster/v1_0/orgs');
 var users_oneroster_1_0 = require('./routes/oneroster/v1_0/users');
+var resources_oneroster_1_0 = require('./routes/oneroster/v1_0/resources');
+var lineitems_oneroster_1_0 = require('./routes/oneroster/v1_0/lineitems');
+var categories_oneroster_1_0 = require('./routes/oneroster/v1_0/categories');
+var results_oneroster_1_0 = require('./routes/oneroster/v1_0/results');
 
 var app = express();
 
@@ -37,6 +41,22 @@ app.use('/learningdata/v1', demographics_oneroster_1_0);
 app.use('/learningdata/v1', enrollments_oneroster_1_0);
 app.use('/learningdata/v1', orgs_oneroster_1_0);
 app.use('/learningdata/v1', users_oneroster_1_0);
+app.use('/learningdata/v1', resources_oneroster_1_0);
+app.use('/learningdata/v1', lineitems_oneroster_1_0);
+app.use('/learningdata/v1', categories_oneroster_1_0);
+app.use('/learningdata/v1', results_oneroster_1_0);
+
+app.use('/ims/oneroster/v1p1', academicSessions_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', classes_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', courses_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', demographics_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', enrollments_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', orgs_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', users_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', resources_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', lineitems_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', categories_oneroster_1_0);
+app.use('/ims/oneroster/v1p1', results_oneroster_1_0);
 
 // Catch 404 and return a REST style response
 app.use(function(req, res, next) {

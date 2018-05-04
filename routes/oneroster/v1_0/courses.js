@@ -23,14 +23,19 @@ var buildCourse = function(row, hrefBase, metaFields) {
 
   if (row.schoolYearId) {
     var schoolYear = {};
-    schoolYear.href = hrefBase + '/aademicSessions/' + row.schoolYearId;
+    schoolYear.href = hrefBase + '/academicSessions/' + row.schoolYearId;
     schoolYear.sourcedId = row.schoolYearId;
     schoolYear.type = 'academicSession';
     course.schoolYear = schoolYear;
   }
 
   course.courseCode = row.courseCode;
-  course.grade = row.grade;
+
+  if (hrefBase.indexOf("ims/oneroster") !== -1) {
+    course.grades = row.grade;
+  } else {
+    course.grade = row.grade;
+  }
 
   if (row.subjects) {
     var subjects = [];

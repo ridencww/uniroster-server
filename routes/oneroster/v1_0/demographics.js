@@ -5,6 +5,10 @@ var utils = require('../../../lib/onerosterUtils.js');
 
 var router = express.Router();
 
+function safeLowerCase(isV10, field) {
+  return (!isV10 && field !== null) ? field.toLowerCase() : field;
+}
+
 var buildDemographics = function(row, hrefBase, metaFields) {
   var demographics = {};
   demographics.sourcedId = row.userSourcedId;
@@ -19,15 +23,22 @@ var buildDemographics = function(row, hrefBase, metaFields) {
     demographics.metadata = metadata;
   }
 
-  demographics.birthdate = row.birthdate;
-  demographics.sex = row.sex;
-  demographics.americanIndianOrAlaskaNative = row.americanIndianOrAlaskaNative;
-  demographics.asian = row.asian;
-  demographics.blackOrAfricanAmerican = row.blackOrAfricanAmerican;
-  demographics.nativeHawaiianOrOtherPacificIslander = row.nativeHawaiianOrOtherPacificIslander;
-  demographics.white = row.white;
-  demographics.demographicRaceTwoOrMoreRaces = row.demographicRaceTwoOrMoreRaces;
-  demographics.hispanicOrLatinoEthnicity = row.hispanicOrLatinoEthnicity;
+  var isV10 = hrefBase.indexOf("ims/oneroster") === -1;
+
+  if (isV10) {
+    demographics.birthdate = row.birthdate;
+  } else {
+    demographics.birthDate = row.birthdate;
+  }
+
+  demographics.sex = safeLowerCase(isV10, row.sex);
+  demographics.americanIndianOrAlaskaNative = safeLowerCase(isV10, row.americanIndianOrAlaskaNative);
+  demographics.asian = safeLowerCase(isV10, row.asian);
+  demographics.blackOrAfricanAmerican = safeLowerCase(isV10, row.blackOrAfricanAmerican);
+  demographics.nativeHawaiianOrOtherPacificIslander = safeLowerCase(isV10, row.nativeHawaiianOrOtherPacificIslander);
+  demographics.white = safeLowerCase(isV10, row.white);
+  demographics.demographicRaceTwoOrMoreRaces = safeLowerCase(isV10, row.demographicRaceTwoOrMoreRaces);
+  demographics.hispanicOrLatinoEthnicity = safeLowerCase(isV10, row.hispanicOrLatinoEthnicity);
   demographics.countryOfBirthCode = row.countryOfBirthCode;
   demographics.stateOfBirthAbbreviation = row.stateOfBirthAbbreviation;
   demographics.cityOfBirth = row.cityOfBirth;

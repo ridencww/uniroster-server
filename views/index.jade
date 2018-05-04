@@ -9,6 +9,8 @@ block content
           th Description
           th client_id
           th client_password
+          th OAuth Proxy
+          th
       tbody
           - var i = -1
           each item in data
@@ -17,3 +19,6 @@ block content
               td=item.description
               td=item.client_id
               td=item.client_password
+              td=item.oauth_proxy
+              td: a(href="/newToken?id=" + item.client_id) New
+              td: a(href="/clearToken?id=" + item.client_id) Clear

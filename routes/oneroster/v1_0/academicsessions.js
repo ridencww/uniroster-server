@@ -190,12 +190,20 @@ router.get('/academicSessions', function(req, res, next) {
   queryAcademicSessions(req, res, next);
 });
 
-router.get('/terms', function(req, res, next) {
-  queryAcademicSessions(req, res, next, "term");
-});
-
 router.get('/academicSessions/:id', function(req, res, next) {
   queryAcademicSession(req, res, next);
+});
+
+router.get('/gradingPeriods', function(req, res, next) {
+  queryAcademicSessions(req, res, next, "gradingPeriod");
+});
+
+router.get('/gradingPeriods/:id', function(req, res, next) {
+  queryAcademicSession(req, res, next, "gradingPeriod");
+});
+
+router.get('/terms', function(req, res, next) {
+  queryAcademicSessions(req, res, next, "term");
 });
 
 router.get('/terms/:id', function(req, res, next) {

@@ -23,7 +23,12 @@ var buildClass = function(row, hrefBase, metaFields) {
   clazz.classCode = row.classCode;
   clazz.classType = row.classType;
   clazz.location = row.location;
-  clazz.grade = row.grade;
+
+  if (hrefBase.indexOf("ims/oneroster") !== -1) {
+    clazz.grades = row.grade;
+  } else {
+    clazz.grade = row.grade;
+  }
 
   if (row.subjects) {
     var subjects = [];
