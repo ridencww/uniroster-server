@@ -1,6 +1,6 @@
 var db = {};
-db.host = 'localhost';
-db.user = 'uniroster';
+db.host = 'mariadb';
+db.user = 'root';
 db.password = 'password';
 db.database = 'uniroster';
 db.connectionLimit = 10;

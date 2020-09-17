@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  mariadb:
+    container_name: mariadb
+    restart: unless-stopped
+    image: mariadb:latest
+    ports:
+      - "3306:3306"
+    volumes:
+      - .:/uniroster-server
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+  uniroster:
+    container_name: uniroster-dev
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/uniroster-server
