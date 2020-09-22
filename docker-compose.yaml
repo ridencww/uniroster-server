@@ -1,9 +1,9 @@
 version: '3.8'
 services:
   mariadb:
-    container_name: mariadb
+    container_name: mysql
     restart: unless-stopped
-    image: mariadb:latest
+    image: mysql:5.7
     ports:
       - "3306:3306"
     volumes:

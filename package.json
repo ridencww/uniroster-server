@@ -16,7 +16,7 @@
     "start": "node ./bin/www",
     "start:nodemon": "nodemon ./bin/www --trace-events-enabled",
     "start:dev": "docker-compose up -d && npm run init-db:dev",
-    "init-db:dev": "docker exec -it mariadb /uniroster-server/sql/dev_setup.sh"
+    "init-db:dev": "docker exec -it mysql /uniroster-server/sql/dev_setup.sh"
   },
   "dependencies": {
     "body-parser": "~1.15.1",
