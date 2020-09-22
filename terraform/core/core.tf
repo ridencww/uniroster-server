@@ -17,7 +17,7 @@ resource "aws_elastic_beanstalk_application" "uniroster-app" {
 }
 
 module "aws-ebs-app" {
-  source                = "../aws-ebs"
+  source                = "../aws-ebs-with-rds"
 
   environment           = var.environment
   prefix                = var.prefix 
