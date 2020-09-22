@@ -14,6 +14,7 @@ variable "engine"{}
 variable "identifier"{}
 variable "instance_class"{}
 variable "multi_az"{}
+variable "availability_zones"{}
 
 # EBS instance details
 variable "app_instance_type"{}

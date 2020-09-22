@@ -29,6 +29,7 @@ module "aws-ebs-app" {
   identifier            = var.identifier
   instance_class        = var.instance_class
   multi_az              = var.multi_az
+  availability_zones    = var.availability_zones
   
   /*EBS config*/
   app_instance_type     = var.app_instance_type
