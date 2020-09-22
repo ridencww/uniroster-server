@@ -35,6 +35,7 @@ module "aws-ebs-app" {
   ebs_app_name          = var.ebs_app_name
   autoscaling_min_size  = var.autoscaling_min_size
   autoscaling_max_size  = var.autoscaling_max_size
+  solution_stack_name   = var.solution_stack_name
 
   PATH_TO_PUBLIC_KEY    = var.public_key
 
@@ -43,6 +44,20 @@ module "aws-ebs-app" {
   RDS_PASSWORD          = var.RDS_PASSWORD
 
   transit_gateway_id    = var.transit_gateway_id
+
+  vpc_cidr_block        = var.vpc_cidr_block
+  public_1_cidr_block   = var.public_1_cidr_block
+  public_1_zone         = var.public_1_zone
+  public_2_cidr_block   = var.public_2_cidr_block
+  public_2_zone         = var.public_2_zone
+  public_3_cidr_block   = var.public_3_cidr_block
+  public_3_zone         = var.public_3_zone
+  private_1_cidr_block  = var.private_1_cidr_block
+  private_1_zone        = var.private_1_zone
+  private_2_cidr_block  = var.private_2_cidr_block
+  private_2_zone        = var.private_2_zone
+  private_3_cidr_block  = var.private_3_cidr_block
+  private_3_zone        = var.private_3_zone
 }
 
 output "name" {
