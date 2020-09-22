@@ -20,7 +20,7 @@ module "aws-ebs-app" {
   source                = "../aws-ebs-with-rds"
 
   environment           = var.environment
-  prefix                = var.prefix 
+  prefix                = var.prefix
 
   /*RDS*/
   allocated_storage     = var.allocated_storage
@@ -62,7 +62,7 @@ module "aws-ebs-app" {
 }
 
 output "name" {
-  value = aws_elastic_beanstalk_application.oneroster-app.name
+  value = aws_elastic_beanstalk_application.uniroster-app.name
 }
 
 output "ebs-cname" {
