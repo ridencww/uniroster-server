@@ -47,10 +47,15 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
     name      = "ELBScheme"
     value     = "public"
   }
+  #setting {
+  #  namespace = "aws:ec2:vpc"
+  #  name      = "ELBSubnets"
+  #  value     = "${aws_subnet.main-public-1.id},${aws_subnet.main-public-2.id},${aws_subnet.main-public-3.id}"
+  #}
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBSubnets"
-    value     = "${aws_subnet.main-public-1.id},${aws_subnet.main-public-2.id},${aws_subnet.main-public-3.id}"
+    value     = "${aws_subnet.main-private-1.id},${aws_subnet.main-private-2.id},${aws_subnet.main-private-3.id}"
   }
   setting {
     namespace = "aws:elb:loadbalancer"
