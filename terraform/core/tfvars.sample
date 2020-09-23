@@ -39,7 +39,6 @@ autoscaling_min_size    = 1
 autoscaling_max_size    = 10
 solution_stack_name     = "64bit Amazon Linux 2018.03 v2.15.4 running Docker 19.03.6-ce"
 
-RDS_DB_NAME             = "uniroster"
 RDS_USERNAME            = "uniroster"
 RDS_PASSWORD            = "unsecure-password-lol"
 

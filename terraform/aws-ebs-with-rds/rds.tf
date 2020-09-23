@@ -16,7 +16,6 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 resource "aws_rds_cluster" "default" {
   cluster_identifier     = "${var.environment}-${var.prefix}-${var.identifier}-cluster"
   availability_zones     = var.availability_zones
-  database_name          = var.RDS_DB_NAME
   master_username        = var.RDS_USERNAME
   master_password        = var.RDS_PASSWORD
   engine                 = var.engine

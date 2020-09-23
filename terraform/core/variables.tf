@@ -24,7 +24,6 @@ variable "solution_stack_name"{}
 
 variable "RDS_USERNAME"{}
 variable "RDS_PASSWORD"{}
-variable "RDS_DB_NAME"{}
 
 variable "transit_gateway_id"{}
 

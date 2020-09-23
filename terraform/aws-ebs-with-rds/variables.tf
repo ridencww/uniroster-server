@@ -9,7 +9,6 @@ variable "identifier" {}
 variable "multi_az" {}
 variable "availability_zones" {}
 
-variable "RDS_DB_NAME" {}
 variable "RDS_USERNAME" {}
 variable "RDS_PASSWORD" {}
 
