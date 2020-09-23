@@ -36,3 +36,5 @@ variable "private_3_zone"{}
 
 variable "transit_gateway_route_cidr_block"{}
 variable "ingress_rds_cidr_blocks"{}
+variable "ingress_app_cidr_blocks"{}
+variable "ingress_app_port"{}
