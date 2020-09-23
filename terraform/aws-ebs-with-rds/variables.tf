@@ -34,3 +34,5 @@ variable "private_2_cidr_block"{}
 variable "private_2_zone"{}
 variable "private_3_cidr_block"{}
 variable "private_3_zone"{}
+
+variable "transit_gateway_route_cidr_block"{}

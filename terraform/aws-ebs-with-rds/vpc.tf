@@ -136,9 +136,11 @@ resource "aws_route_table_association" "main-private-3-a" {
   route_table_id = aws_route_table.main-private.id
 }
 
-resource "aws_route_table_association" "main-private-transit-gateway" {
-  gateway_id = var.transit_gateway_id
-  route_table_id = aws_route_table.main-private.id
+resource "aws_route" "transit-gateway-route" {
+    route_table_id         = aws_route_table.main-private.id
+    destination_cidr_block = var.transit_gateway_route_cidr_block
+    transit_gateway_id     = var.transit_gateway_id
+    depends_on             = [aws_ec2_transit_gateway_vpc_attachment.transit-gateway]
 }
 
 # nat gw
