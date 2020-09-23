@@ -38,8 +38,6 @@ module "aws-ebs-app" {
   autoscaling_max_size  = var.autoscaling_max_size
   solution_stack_name   = var.solution_stack_name
 
-  PATH_TO_PUBLIC_KEY    = var.public_key
-
   RDS_DB_NAME           = var.RDS_DB_NAME
   RDS_USERNAME          = var.RDS_USERNAME
   RDS_PASSWORD          = var.RDS_PASSWORD

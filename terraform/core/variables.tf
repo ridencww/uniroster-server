@@ -1,6 +1,5 @@
 variable "ebs_app_name"{}
 variable "build_artifact_bucket"{}
-variable "public_key"{}
 
 # General variables
 variable "aws_region"{}

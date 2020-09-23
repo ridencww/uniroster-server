@@ -29,11 +29,6 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
   }
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
-    name      = "EC2KeyName"
-    value     = aws_key_pair.mykeypair.id
-  }
-  setting {
-    namespace = "aws:autoscaling:launchconfiguration"
     name      = "InstanceType"
     value     = var.app_instance_type
   }

@@ -19,8 +19,6 @@ variable "autoscaling_min_size" {}
 variable "autoscaling_max_size" {}
 variable "solution_stack_name" {}
 
-variable "PATH_TO_PUBLIC_KEY" {}
-
 variable "transit_gateway_id"{}
 
 variable "vpc_cidr_block"{}
