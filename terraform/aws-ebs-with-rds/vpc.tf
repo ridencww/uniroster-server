@@ -136,6 +136,11 @@ resource "aws_route_table_association" "main-private-3-a" {
   route_table_id = aws_route_table.main-private.id
 }
 
+resource "aws_route_table_association" "main-private-transit-gateway" {
+  gateway_id = var.transit_gateway_id
+  route_table_id = aws_route_table.main-private.id
+}
+
 # nat gw
 resource "aws_eip" "nat" {
   vpc = true
