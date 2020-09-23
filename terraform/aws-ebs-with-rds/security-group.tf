@@ -18,6 +18,26 @@ resource "aws_security_group" "app-security" {
   }
 }
 
+resource "aws_security_group" "elb-security" {
+  vpc_id      = aws_vpc.main.id
+  name        = "${var.environment}-${var.prefix}-elb-security group"
+  description = "${var.environment}-${var.prefix}-elb-security group for for the app"
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  
+  ingress {
+    from_port   = var.ingress_elb_port
+    to_port     = var.ingress_elb_port
+    protocol    = "tcp"
+    cidr_blocks = var.ingress_elb_cidr_blocks
+  }
+}
+
 resource "aws_security_group" "allow-rds" {
   vpc_id      = aws_vpc.main.id
   name        = "${var.environment}-${var.prefix}-allow-rds"

@@ -57,7 +57,12 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
     name      = "CrossZone"
     value     = "true"
   }
-   setting {
+  setting {
+    namespace = "aws:elb:loadbalancer"
+    name      = "SecurityGroups"
+    value     = aws_security_group.elb-security.id
+  }
+  setting {
     namespace = "aws:elasticbeanstalk:cloudwatch:logs"
     name      = "StreamLogs"
     value     = "true"
