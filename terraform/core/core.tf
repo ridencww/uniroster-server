@@ -45,6 +45,7 @@ module "aws-ebs-app" {
   transit_gateway_id    = var.transit_gateway_id
   
   transit_gateway_route_cidr_block = var.transit_gateway_route_cidr_block
+  ingress_rds_cidr_blocks = var.ingress_rds_cidr_blocks
 
   vpc_cidr_block        = var.vpc_cidr_block
   public_1_cidr_block   = var.public_1_cidr_block

@@ -34,6 +34,7 @@ resource "aws_security_group" "allow-rds" {
     from_port       = 3306
     to_port         = 3306
     protocol        = "tcp"
+    cidr_blocks     = var.ingress_rds_cidr_blocks
     security_groups = [aws_security_group.app-security.id] # allowing access from our instance
   }
 
