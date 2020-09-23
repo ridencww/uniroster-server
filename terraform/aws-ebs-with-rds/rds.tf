@@ -21,4 +21,5 @@ resource "aws_rds_cluster" "default" {
   master_password        = var.RDS_PASSWORD
   engine                 = var.engine
   db_subnet_group_name   = aws_db_subnet_group.rds-subnet.name
+  vpc_security_group_ids = [aws_security_group.allow-rds.id]
 }
