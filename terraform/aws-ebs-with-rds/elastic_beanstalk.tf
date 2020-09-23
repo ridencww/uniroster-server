@@ -45,7 +45,7 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBScheme"
-    value     = "public"
+    value     = "internal"
   }
   #setting {
   #  namespace = "aws:ec2:vpc"
