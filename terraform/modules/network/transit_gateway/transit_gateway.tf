@@ -12,7 +12,7 @@ resource "aws_route" "tgroute" {
 }
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "main" {
-  subnet_ids         = element(split(",", var.subnet_ids), count.index)
+  subnet_ids         = split(",", var.subnet_ids)
   transit_gateway_id = var.transit_gateway_id
   vpc_id             = var.vpc_id
 }
