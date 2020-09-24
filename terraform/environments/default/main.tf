@@ -42,7 +42,7 @@ module "aurora_rds" {
 
     name         = "${var.environment}-${var.prefix}"
     vpc_id       = module.network.vpc_id
-    ingress_cidr = var.ingress_rds_cidr
+    ingress_cidr = var.ingress_cidr
     subnet_ids   = module.network.private_subnet_ids
     username     = var.db_username
     password     = var.db_password
@@ -50,10 +50,11 @@ module "aurora_rds" {
 
 ####### ELASTIC BEANSTALK #######
 
-variable "app_port" { }
+variable "app_name"          { }
+variable "app_port"          { }
 variable "app_instance_type" { }
-variable "ingress_app_cidr" { }
-variable "ingress_elb_cidr" { }
+variable "ingress_app_cidr"  { }
+variable "ingress_elb_cidr"  { }
 
 module "elastic_beanstalk" {
     source = "../../modules/elastic_beanstalk"
