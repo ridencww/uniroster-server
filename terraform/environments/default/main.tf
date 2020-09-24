@@ -22,11 +22,11 @@ module "network" {
     source = "../../modules/network"
 
     name                 = "${var.environment}-${var.prefix}"
-    vpc_cidr             = "${var.vpc_cidr}"
-    azs                  = "${var.azs}"
-    private_subnets      = "${var.private_subnets}"
-    public_subnets       = "${var.public_subnets}"
-    transit_gateway_cidr = "${var.transit_gateway_cidr}"
+    vpc_cidr             = var.vpc_cidr
+    azs                  = var.azs
+    private_subnets      = var.private_subnets
+    public_subnets       = var.public_subnets
+    transit_gateway_cidr = var.transit_gateway_cidr
 }
 
 ####### AURORA #######
@@ -39,11 +39,11 @@ module "aurora_rds" {
     source = "../../modules/aurora_rds"
 
     name         = "${var.environment}-${var.prefix}"
-    vpc_id       = "${module.network.vpc_id}"
-    ingress_cidr = "${var.ingress_rds_cidr}"
-    subnet_ids   = "${module.network.private_subnet_ids}"
-    username     = "${var.db_username}"
-    password     = "${var.db_password}"
+    vpc_id       = module.network.vpc_id
+    ingress_cidr = var.ingress_rds_cidr
+    subnet_ids   = module.network.private_subnet_ids
+    username     = var.db_username
+    password     = var.db_password
 }
 
 ####### ELASTIC BEANSTALK #######
@@ -57,15 +57,15 @@ module "elastic_beanstalk" {
     source = "../../modules/elastic_beanstalk"
 
     name              = "${var.environment}-${var.prefix}"
-    app_name          = "${var.app_name}"
+    app_name          = var.app_name
     app_port          = var.app_port
-    app_instance_type = "${var.app_instance_type}"
-    vpc_id            = "${module.network.vpc_id}"
-    subnet_ids        = "${module.network.private_subnet_ids}"
-    ingress_app_cidr  = "${var.ingress_app_cidr}"
-    ingress_elb_cidr  = "${var.ingress_elb_cidr}"
-    elb_subnet_ids    = "${module.network.private_subnet_ids}"
-    db_hostname       = "${module.aurora_rds.endpoint}"
-    db_username       = "${var.db_username}"
-    db_password       = "${var.db_password}"
+    app_instance_type = var.app_instance_type
+    vpc_id            = module.network.vpc_id
+    subnet_ids        = module.network.private_subnet_ids
+    ingress_app_cidr  = var.ingress_app_cidr
+    ingress_elb_cidr  = var.ingress_elb_cidr
+    elb_subnet_ids    = module.network.private_subnet_ids
+    db_hostname       = module.aurora_rds.endpoint
+    db_username       = var.db_username
+    db_password       = var.db_password
 }

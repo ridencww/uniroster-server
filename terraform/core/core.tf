@@ -16,6 +16,6 @@ resource "aws_s3_bucket" "build_bucket" {
 }
 
 resource "aws_elastic_beanstalk_application" "uniroster-app" {
-  name        = "${var.app_name}"
+  name        = var.app_name
   description = "Beanstalk application"
 }

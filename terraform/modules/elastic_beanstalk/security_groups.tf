@@ -1,5 +1,5 @@
 resource "aws_security_group" "eb_app" {
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
   name        = "${var.name}-security-group"
   description = "Elastic Beanstalk app security group"
 
@@ -13,13 +13,13 @@ resource "aws_security_group" "eb_app" {
   ingress {
     from_port   = var.app_port
     to_port     = var.app_port
-    protocol    = "${var.app_port_protocol}"
-    cidr_blocks = "${var.ingress_app_cidr}"
+    protocol    = var.app_port_protocol
+    cidr_blocks = var.ingress_app_cidr
   }
 }
 
 resource "aws_security_group" "eb_elb" {
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
   name        = "${var.name}-elb-security"
   description = "Elastic Beanstalk load balancer security group"
 
@@ -33,7 +33,7 @@ resource "aws_security_group" "eb_elb" {
   ingress {
     from_port   = var.app_port
     to_port     = var.app_port
-    protocol    = "${var.app_port_protocol}"
-    cidr_blocks = "${var.ingress_elb_cidr}"
+    protocol    = var.app_port_protocol
+    cidr_blocks = var.ingress_elb_cidr
   }
 }

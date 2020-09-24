@@ -1,11 +1,11 @@
 resource "aws_elastic_beanstalk_environment" "app" {  
-  name                = "${var.name}"
-  application         = "${var.app_name}"
-  solution_stack_name = "${var.solution_stack_name}"
+  name                = var.name
+  application         = var.app_name
+  solution_stack_name = var.solution_stack_name
   setting {
     namespace = "aws:ec2:vpc"
     name      = "VPCId"
-    value     = "${var.vpc_id}"
+    value     = var.vpc_id
   }
   setting {
     namespace = "aws:ec2:vpc"
@@ -15,7 +15,7 @@ resource "aws_elastic_beanstalk_environment" "app" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = "${var.subnet_ids}"
+    value     = var.subnet_ids
   }
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
@@ -30,7 +30,7 @@ resource "aws_elastic_beanstalk_environment" "app" {
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "InstanceType"
-    value     = "${var.app_instance_type}"
+    value     = var.app_instance_type
   }
   setting {
     namespace = "aws:elasticbeanstalk:environment"
@@ -40,12 +40,12 @@ resource "aws_elastic_beanstalk_environment" "app" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBScheme"
-    value     = "${var.elb_scheme}"
+    value     = var.elb_scheme
   }
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBSubnets"
-    value     = "${var.elb_subnet_ids}"
+    value     = var.elb_subnet_ids
   }
   setting {
     namespace = "aws:elb:loadbalancer"
@@ -95,16 +95,16 @@ resource "aws_elastic_beanstalk_environment" "app" {
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DB_HOSTNAME"
-    value     = "${var.db_hostname}"
+    value     = var.db_hostname
   }
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DB_USERNAME"
-    value     = "${var.db_username}"
+    value     = var.db_username
   }
   setting {
     namespace = "aws:elasticbeanstalk:application:environment"
     name      = "DB_PASSWORD"
-    value     = "${var.db_password}"
+    value     = var.db_password
   }
 }

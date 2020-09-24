@@ -11,9 +11,9 @@ variable "username"        { }
 variable "password"        { }
 
 resource "aws_security_group" "allow-rds" {
-  vpc_id      = "${var.vpc_id}"
+  vpc_id      = var.vpc_id
   name        = "${var.name}-allow-rds"
-  description = "${var.name}-allow-rds"
+  description = "Security group to allow access to the port the database is running on"
 
   ingress {
     from_port       = var.port
@@ -41,8 +41,8 @@ resource "aws_db_subnet_group" "aurora" {
 }
 
 resource "aws_rds_cluster_instance" "cluster_instances" {
-  count              = "${var.instance_count}"
-  identifier         = "${var.name}"
+  count              = var.instance_count
+  identifier         = var.name
   cluster_identifier = aws_rds_cluster.cluster.id
   instance_class     = var.instance_class
   engine             = aws_rds_cluster.cluster.engine
@@ -52,10 +52,10 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 resource "aws_rds_cluster" "cluster" {
   cluster_identifier     = "${var.name}-cluster"
   availability_zones     = split(",", var.availability_zones)
-  master_username        = "${var.username}"
-  master_password        = "${var.password}"
-  engine                 = "${var.engine}"
-  engine_version         = "${var.engine_version}"
+  master_username        = var.username
+  master_password        = var.password
+  engine                 = var.engine
+  engine_version         = var.engine_version
   db_subnet_group_name   = aws_db_subnet_group.aurora.name
   vpc_security_group_ids = [aws_security_group.allow-rds.id]
 }
