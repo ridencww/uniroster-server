@@ -25,9 +25,9 @@ module "public_subnet" {
 module "nat" {
   source = "./nat"
 
-  name              = "${var.name}-nat"
-  azs               = var.azs
-  public_subnet_ids = module.public_subnet.subnet_ids
+  name             = "${var.name}-nat"
+  azs              = var.azs
+  public_subnet_id = element(split(",", module.public_subnet.subnet_ids), 0)
 }
 
 module "private_subnet" {
