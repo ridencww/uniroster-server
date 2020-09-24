@@ -17,6 +17,7 @@ variable "azs"                  { }
 variable "public_subnets"       { }
 variable "private_subnets"      { }
 variable "transit_gateway_cidr" { }
+variable "transit_gateway_id"   { }
 
 module "network" {
     source = "../../modules/network"
@@ -27,6 +28,7 @@ module "network" {
     private_subnets      = var.private_subnets
     public_subnets       = var.public_subnets
     transit_gateway_cidr = var.transit_gateway_cidr
+    transit_gateway_id   = var.transit_gateway_id
 }
 
 ####### AURORA #######

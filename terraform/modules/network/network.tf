@@ -4,6 +4,7 @@ variable "azs"                  { }
 variable "private_subnets"      { }
 variable "public_subnets"       { }
 variable "transit_gateway_cidr" { }
+variable "transit_gateway_id"   { }
 
 module "vpc" {
   source = "./vpc"
@@ -43,11 +44,11 @@ module "private_subnet" {
 module "transit_gateway" {
     source = "./transit_gateway"
 
-    name           = "${var.name}-transit-gateway"
-    cidr           = var.transit_gateway_cidr
-    vpc_id         = module.vpc.vpc_id
-    subnet_ids     = module.private_subnet.subnet_ids
-    route_table_id = module.private_subnet.route_table_id
+    cidr               = var.transit_gateway_cidr
+    vpc_id             = module.vpc.vpc_id
+    subnet_ids         = module.private_subnet.subnet_ids
+    route_table_id     = module.private_subnet.route_table_id
+    transit_gateway_id = var.transit_gateway_id
 }
 
 output "vpc_id"   { value = module.vpc.vpc_id }
