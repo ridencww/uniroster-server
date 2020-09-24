@@ -4,6 +4,7 @@ variable "engine_version"  { default = "5.7.mysql_aurora.2.03.2" }
 variable "instance_class"  { default = "db.t2.small" }
 variable "instance_count"  { default = 1 }
 variable "port"            { default = 3306 }
+variable "azs"             { }
 variable "vpc_id"          { }
 variable "ingress_cidr"    { }
 variable "subnet_ids"      { }
@@ -51,7 +52,7 @@ resource "aws_rds_cluster_instance" "cluster_instances" {
 
 resource "aws_rds_cluster" "cluster" {
   cluster_identifier     = "${var.name}-cluster"
-  availability_zones     = split(",", var.availability_zones)
+  availability_zones     = split(",", var.azs)
   master_username        = var.username
   master_password        = var.password
   engine                 = var.engine

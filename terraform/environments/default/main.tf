@@ -42,6 +42,7 @@ module "aurora_rds" {
 
     name         = "${var.environment}-${var.prefix}"
     vpc_id       = module.network.vpc_id
+    azs          = var.azs
     ingress_cidr = var.ingress_cidr
     subnet_ids   = module.network.private_subnet_ids
     username     = var.db_username
