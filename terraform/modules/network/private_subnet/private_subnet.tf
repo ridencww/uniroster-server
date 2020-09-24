@@ -10,7 +10,7 @@ resource "aws_subnet" "private" {
   availability_zone = element(split(",", var.azs), count.index)
   count             = length(split(",", var.cidrs))
 
-  tags      { Name = "${var.name}.${element(split(",", var.azs), count.index)}" }
+  tags = { Name = "${var.name}.${element(split(",", var.azs), count.index)}" }
   lifecycle { create_before_destroy = true }
 }
 
@@ -23,7 +23,7 @@ resource "aws_route_table" "private" {
     nat_gateway_id = element(split(",", var.nat_gateway_ids), count.index)
   }
 
-  tags      { Name = "${var.name}.${element(split(",", var.azs), count.index)}" }
+  tags = { Name = "${var.name}.${element(split(",", var.azs), count.index)}" }
   lifecycle { create_before_destroy = true }
 }
 
