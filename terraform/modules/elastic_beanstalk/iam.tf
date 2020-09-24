@@ -1,10 +1,10 @@
-resource "aws_iam_instance_profile" "app-ec2-role" {
-  name = "uniroster-instance-profile"
-  role = aws_iam_role.app-ec2-role.name
+resource "aws_iam_instance_profile" "app" {
+  name = "${var.name}-app"
+  role = aws_iam_role.app.name
 }
 
-resource "aws_iam_role" "app-ec2-role" {
-  name                  = "${var.environment}-${var.prefix}-app-ec2-role"
+resource "aws_iam_role" "app" {
+  name                  = "${var.name}-app-role"
   force_detach_policies = true
   assume_role_policy    = <<EOF
 {
@@ -24,7 +24,7 @@ EOF
 }
 
 resource "aws_iam_role" "elasticbeanstalk-service-role" {
-  name                  = "${var.environment}-${var.prefix}-elasticbeanstalk-service-role"
+  name                  = "${var.name}-elasticbeanstalk-service-role"
   force_detach_policies = true
   assume_role_policy    = <<EOF
 {
@@ -45,7 +45,7 @@ EOF
 }
 
 resource "aws_iam_role_policy" "app-attach1" {
-  role   = aws_iam_role.app-ec2-role.name
+  role   = aws_iam_role.app.name
   policy = <<POLICY
 {
    "Version":"2012-10-17",

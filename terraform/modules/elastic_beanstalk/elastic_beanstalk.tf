@@ -1,11 +1,11 @@
-resource "aws_elastic_beanstalk_environment" "uniroster-app" {  
-  name                = "${var.environment}-${var.prefix}-app"
-  application         = var.ebs_app_name
-  solution_stack_name = var.solution_stack_name
+resource "aws_elastic_beanstalk_environment" "app" {  
+  name                = "${var.name}"
+  application         = "${var.app_name}"
+  solution_stack_name = "${var.solution_stack_name}"
   setting {
     namespace = "aws:ec2:vpc"
     name      = "VPCId"
-    value     = aws_vpc.main.id
+    value     = "${var.vpc_id}"
   }
   setting {
     namespace = "aws:ec2:vpc"
@@ -15,22 +15,22 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "Subnets"
-    value     = "${aws_subnet.main-private-1.id},${aws_subnet.main-private-2.id},${aws_subnet.main-private-3.id}"
+    value     = "${var.subnet_ids}"
   }
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "IamInstanceProfile"
-    value     = aws_iam_instance_profile.app-ec2-role.name
+    value     = aws_iam_instance_profile.app.name
   }
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "SecurityGroups"
-    value     = aws_security_group.app-security.id
+    value     = aws_security_group.eb_app.id
   }
   setting {
     namespace = "aws:autoscaling:launchconfiguration"
     name      = "InstanceType"
-    value     = var.app_instance_type
+    value     = "${var.app_instance_type}"
   }
   setting {
     namespace = "aws:elasticbeanstalk:environment"
@@ -40,17 +40,12 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBScheme"
-    value     = "internal"
+    value     = "${var.elb_scheme}"
   }
-  #setting {
-  #  namespace = "aws:ec2:vpc"
-  #  name      = "ELBSubnets"
-  #  value     = "${aws_subnet.main-public-1.id},${aws_subnet.main-public-2.id},${aws_subnet.main-public-3.id}"
-  #}
   setting {
     namespace = "aws:ec2:vpc"
     name      = "ELBSubnets"
-    value     = "${aws_subnet.main-private-1.id},${aws_subnet.main-private-2.id},${aws_subnet.main-private-3.id}"
+    value     = "${var.elb_subnet_ids}"
   }
   setting {
     namespace = "aws:elb:loadbalancer"
@@ -60,7 +55,7 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
   setting {
     namespace = "aws:elb:loadbalancer"
     name      = "SecurityGroups"
-    value     = aws_security_group.elb-security.id
+    value     = aws_security_group.eb_elb.id
   }
   setting {
     namespace = "aws:elasticbeanstalk:cloudwatch:logs"
@@ -96,5 +91,20 @@ resource "aws_elastic_beanstalk_environment" "uniroster-app" {
     namespace = "aws:autoscaling:updatepolicy:rollingupdate"
     name      = "RollingUpdateType"
     value     = "Health"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DB_HOSTNAME"
+    value     = "${var.db_hostname}"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DB_USERNAME"
+    value     = "${var.db_username}"
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "DB_PASSWORD"
+    value     = "${var.db_password}"
   }
 }
