@@ -1,7 +1,7 @@
 terraform {
   backend "s3"{
-      bucket = "cli-oneroster-terraform-artifacts-bucket"
-      key  =  "oneroster.core.tfstate"
+      bucket = "cli-uniroster-terraform-artifacts-bucket"
+      key  =  "uniroster.${var.environment}.tfstate"
       region = "us-east-1"
   }
 }
