@@ -1,5 +1,14 @@
+variable "aws_region"  { default = "us-east-1" }
 variable "environment" { }
 variable "prefix"      { }
+
+terraform {
+  required_version = ">= 0.12"
+}
+
+provider aws {
+    region = var.aws_region
+}
 
 ####### NETWORK #######
 
