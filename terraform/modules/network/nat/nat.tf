@@ -15,4 +15,4 @@ resource "aws_nat_gateway" "nat" {
   lifecycle { create_before_destroy = true }
 }
 
-output "nat_gateway_id" { value = aws_nat_gateway.nat.id) }
+output "nat_gateway_id" { value = aws_nat_gateway.nat.id }
