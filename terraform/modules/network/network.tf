@@ -38,7 +38,7 @@ module "private_subnet" {
   cidrs  = var.private_subnets
   azs    = var.azs
 
-  nat_gateway_ids = module.nat.nat_gateway_id
+  nat_gateway_id = module.nat.nat_gateway_id
 }
 
 module "transit_gateway" {

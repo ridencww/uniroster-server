@@ -2,7 +2,7 @@ variable "name"            { default = "private"}
 variable "vpc_id"          { }
 variable "cidrs"           { }
 variable "azs"             { }
-variable "nat_gateway_ids" { }
+variable "nat_gateway_id" { }
 
 resource "aws_subnet" "private" {
   vpc_id            = var.vpc_id
@@ -16,14 +16,13 @@ resource "aws_subnet" "private" {
 
 resource "aws_route_table" "private" {
   vpc_id = var.vpc_id
-  count  = length(split(",", var.cidrs))
 
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = element(split(",", var.nat_gateway_ids), count.index)
+    nat_gateway_id = var.nat_gateway_id
   }
 
-  tags = { Name = "${var.name}.${element(split(",", var.azs), count.index)}" }
+  tags = { Name = var.name }
   lifecycle { create_before_destroy = true }
 }
 
