@@ -10,7 +10,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/oauth', require('./routes/auth.js'))
 
-app.use('/learningdata/v1', oauthServer.authenticate(), require('./routes/oneroster/v1_0/orgs'));
+app.use('/learningdata', oauthServer.authenticate(), require('./routes/routes'));
 
 if (config.httpActive == true) {
     const http = require('http');
