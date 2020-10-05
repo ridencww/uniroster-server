@@ -1,27 +1,18 @@
 {
-  "name": "oauthexample",
+  "name": "uniroster-server",
   "version": "1.0.0",
-  "description": "An example of how oauth works",
+  "description": "Rostering server supporting multiple protocols (e.g., OneRoster, Ed-Fi, etc.)",
   "main": "index.js",
   "scripts": {
-    "test": "npx mocha auth/tests/**/*.js --exit",
-    "test-dev": "nodemon --exec 'yarn test || exit 1'",
-    "authServer": "node auth/app.js",
-    "devAuth": "npx nodemon auth/app.js"
+    "start": "node index.js",
+    "start:dev": "docker-compose up -d && npm run init-db:dev",
+    "init-db:dev": "docker exec -it mysql /uniroster-server/sql/dev_setup.sh"
   },
-  "author": "Asher",
-  "license": "ISC",
   "dependencies": {
     "body-parser": "1.19.0",
     "express": "4.17.1",
     "express-oauth-server": "2.0.0",
     "oauth2-server": "3.1.1",
     "promise-mysql": "4.1.3"
-  },
-  "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-http": "^4.3.0",
-    "nodemon": "^1.19.1",
-    "mocha": "^6.1.4"
   }
 }
