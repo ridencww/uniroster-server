@@ -9,7 +9,7 @@ const pool = mysql.createPool({
     password: config.db.password
 });
 
-const getData = function(req, res, table, queryValues, additionalWhereStmts) {
+const getData = function(req, res, table, queryValues, additionalWhereStmts, distinct) {
     const datasetSql = "SELECT dataset FROM clients where client_id = (SELECT client_id FROM tokens WHERE access_token = ?)";
     const token = req.headers.authorization.split(' ')[1];
 
@@ -20,7 +20,7 @@ const getData = function(req, res, table, queryValues, additionalWhereStmts) {
         return tableFields(table);
     }).then((results) => {
         fields = results;
-        const select = buildSelectStmt(req, res, fields);
+        const select = buildSelectStmt(req, res, fields, distinct);
         const where = buildWhereStmt(req, res, fields, '', additionalWhereStmts);
         const orderBy = buildOrderByStmt(req, res, fields);
         const sql = `${select} FROM ${table} ${where} ${orderBy} ${buildLimitStmt(req)}`;
@@ -103,45 +103,44 @@ const buildOrderByStmt = function(req, res, tableFields) {
     return req.query.sort ? 'ORDER BY ' + req.query.sort + ' ' + orderBy + ' ' : '';
 };
   
-const buildSelectStmt = function(req, res, tableFields, prefix, allowButIgnoreThese) {
-    var alias = prefix ? prefix + '.' : '';
+const buildSelectStmt = function(req, res, tableFields, distinct, prefix, allowButIgnoreThese) {
+    const alias = prefix ? prefix + '.' : '';
+    const selectPrefix = distinct ? 'SELECT DISTINCT' : 'SELECT';
+
     if (req.query.fields) {
-      // Store fields that act as placeholders (e.g., demographics for u.userSourcedId)
-      if (tableFields) {
-        tableFields.all.push(allowButIgnoreThese);
-      }
-  
-      var select = '';
-      var fields = req.query.fields.toString().split(",");
-      for (var i = 0; i < fields.length; i++) {
-        var field = fields[i];
-  
-        // Store away the list of fields requested for future reference
+        // Store fields that act as placeholders (e.g., demographics for u.userSourcedId)
         if (tableFields) {
-          tableFields.requested.push(field);
+            tableFields.all.push(allowButIgnoreThese);
         }
-  
-        // If validFields supplied, field must be in list
-        if (tableFields && tableFields.all.indexOf(field) == -1) {
-            utils.reportBadRequest(res, "'" + field + "' is not a valid field.");
-            return null;
-        }
-  
-        // Don't all ignored fields to select list
-        if (allowButIgnoreThese && allowButIgnoreThese.indexOf(field) != -1) {
-          continue;
-        }
-  
-        if (select.length > 0) select += ",";
-        select += alias + '`' + field.replace('.', '#') + '`';
-      }
-  
-      // Fixup for allowButIgnore fields to insure one field is in the select list
-      if (select.length === 0) select = alias + 'sourcedId';
-  
-      return 'SELECT ' + select + ' ';
+    
+        let select = '';
+        req.query.fields.toString().split(",").forEach(function(field) {
+            // Store away the list of fields requested for future reference
+            if (tableFields) {
+                tableFields.requested.push(field);
+            }
+      
+            // If validFields supplied, field must be in list
+            if (tableFields && tableFields.all.indexOf(field) == -1) {
+                utils.reportBadRequest(res, `'${field}' is not a valid field.`);
+                return null;
+            }
+      
+            // Don't add ignored fields to select list
+            if (allowButIgnoreThese && allowButIgnoreThese.indexOf(field) != -1) {
+                continue;
+            }
+      
+            if (select.length > 0) select += ",";
+            select += `${alias}\`${field.replace('.', '#')}\``
+        });
+    
+        // Fixup for allowButIgnore fields to insure one field is in the select list
+        if (select.length === 0) select = alias + 'sourcedId';
+    
+        return `${selectPrefix} ${select} `;
     } else {
-      return 'SELECT ' + alias + '* ';
+        return `${selectPrefix} ${alias}* `;
     }
 };
   
