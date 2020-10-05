@@ -9,7 +9,7 @@ const pool = mysql.createPool({
     password: config.db.password
 });
 
-const getData = function(req, res, table, queryValues, additionalWhereStmts, distinct) {
+const getData = function(req, res, table, queryValues, distinct, fromStmt, wherePrefix, additionalWhereStmts) {
     const datasetSql = "SELECT dataset FROM clients where client_id = (SELECT client_id FROM tokens WHERE access_token = ?)";
     const token = req.headers.authorization.split(' ')[1];
 
@@ -21,9 +21,10 @@ const getData = function(req, res, table, queryValues, additionalWhereStmts, dis
     }).then((results) => {
         fields = results;
         const select = buildSelectStmt(req, res, fields, distinct);
-        const where = buildWhereStmt(req, res, fields, '', additionalWhereStmts);
+        const from = fromStmt || `FROM ${table}`;
+        const where = buildWhereStmt(req, res, fields, wherePrefix, additionalWhereStmts);
         const orderBy = buildOrderByStmt(req, res, fields);
-        const sql = `${select} FROM ${table} ${where} ${orderBy} ${buildLimitStmt(req)}`;
+        const sql = `${select} ${from} ${where} ${orderBy} ${buildLimitStmt(req)}`;
         return queryDatabase(dataset, sql, queryValues);
     }).then((results) => {
         return {

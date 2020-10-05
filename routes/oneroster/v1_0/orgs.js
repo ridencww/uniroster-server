@@ -1,43 +1,41 @@
 const db = require('../../../utils/database');
 const router = require('express').Router();
 const table = 'orgs';
-const utils = require('../../../utils/utils');
 
 function buildOrg(row, hrefBase, metaFields) {
-    const org = {};
-    org.sourcedId = row.sourcedId;
-    org.status = row.status ? row.status : "active";
-    org.dateLastModified = row.dateLastModified;
+    const org = {
+        sourcedId: row.sourcedId,
+        status: row.status ? row.status : "active",
+        dateLastModified: row.dateLastModified,
+        name: row.name,
+        type: row.type,
+        identifier: row.identifier
+    };
   
-    const metadata = {};
-    metaFields.forEach(function(field) {
-        metadata[field.jsonColumn] = row[field.dbColumn];
-    });
     if (metaFields.length > 0) {
+        const metadata = {};
+        metaFields.forEach(function(field) {
+            metadata[field.jsonColumn] = row[field.dbColumn];
+        });
         org.metadata = metadata;
     }
   
-    org.name = row.name;
-    org.type = row.type;
-    org.identifier = row.identifier;
-  
     if (row.parentSourcedId) {
-        const parent = {};
-        parent.href = hrefBase + '/orgs/' + row.parentSourcedId;
-        parent.sourcedId = row.parentSourcedId;
-        parent.type = 'org';
-        org.parent = parent;
+        org.parent = {
+            href: `${hrefBase}/orgs/${row.parentSourcedId}`,
+            sourceId: row.parentSourcedId,
+            type: 'org'
+        }
     }
   
     if (row.childSourcedIds) {
         const children = [];
-        const fields = row.childSourcedIds.toString().split(",");
-        fields.forEach(function(sid) {
-            const child = {};
-            child.href = hrefBase + '/orgs/' + sid;
-            child.sourcedId = sid;
-            child.type = 'org';
-            children.push(child);
+        row.childSourcedIds.toString().split(",").forEach(function(sid) {
+            children.push({
+                href: `${hrefBase}/orgs/${sid}`,
+                sourceId: sid,
+                type: 'org'
+            });
         });
         org.children = children;
     }
@@ -46,22 +44,22 @@ function buildOrg(row, hrefBase, metaFields) {
 };
 
 function queryOrg(req, res, next, type) {
-    db.getData(req, res, table, [req.params.id, type], 'sourcedId = ? ' + (type ? ' AND type = ?' : '')).then((data) => {
-        const wrapper = {
+    db.getData(req, res, table, [req.params.id, type], false, '', '', 'sourcedId = ? ' + (type ? ' AND type = ?' : '')).then((data) => {
+        res.json({
             orgs: buildOrg(data.results[0], data.hrefBase, data.fields.metaFields)
-        };
-        res.json(wrapper);
+        });
     });
 };
 
 function queryOrgs(req, res, next, type) {
-    db.getData(req, res, table, [type], type ? ' type = ?' : '').then((data) => {
-        const wrapper = {};
-        wrapper.orgs = [];
+    db.getData(req, res, table, [type], false, '', '', type ? ' type = ?' : '').then((data) => {
+        const orgs = [];
         data.results.forEach(function(row) {
-            wrapper.orgs.push(buildOrg(row, data.hrefBase, data.fields.metaFields));
+            orgs.push(buildOrg(row, data.hrefBase, data.fields.metaFields));
         })
-        res.json(wrapper);
+        res.json({
+            orgs: orgs
+        });
     });
 };
 
