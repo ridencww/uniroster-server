@@ -1,5 +1,5 @@
 const config = require('../config');
-const errors = require('./utils');
+const utils = require('./utils');
 const mysql = require('promise-mysql');
 
 const pool = mysql.createPool({
@@ -28,6 +28,7 @@ const getData = function(req, res, table, queryValues, additionalWhereStmts) {
     }).then((results) => {
         return {
             fields: fields,
+            hrefBase: utils.getHrefBase(req),
             results: results
         }
     });
@@ -88,14 +89,14 @@ const buildLimitStmt = function(req) {
 
 const buildOrderByStmt = function(req, res, tableFields) {
     if (req.query.sort && tableFields && tableFields.all.indexOf(req.query.sort) == -1) {
-      errors.reportBadRequest(res, "'" + req.query.sort + "' is not a valid field.");
-      return null;
+        utils.reportBadRequest(res, "'" + req.query.sort + "' is not a valid field.");
+        return null;
     }
   
     regex = new RegExp(/^(asc|desc)$/i);
     if (req.query.orderBy && !regex.test(req.query.orderBy)) {
-        errors.reportBadRequest(res, "'" + req.query.orderBy + "' is not a valid orderBy value.");
-      return null;
+        utils.reportBadRequest(res, "'" + req.query.orderBy + "' is not a valid orderBy value.");
+        return null;
     }
   
     var orderBy = req.query.orderBy ? req.query.orderBy : 'ASC';
@@ -122,8 +123,8 @@ const buildSelectStmt = function(req, res, tableFields, prefix, allowButIgnoreTh
   
         // If validFields supplied, field must be in list
         if (tableFields && tableFields.all.indexOf(field) == -1) {
-            errors.reportBadRequest(res, "'" + field + "' is not a valid field.");
-          return null;
+            utils.reportBadRequest(res, "'" + field + "' is not a valid field.");
+            return null;
         }
   
         // Don't all ignored fields to select list
@@ -163,7 +164,7 @@ var buildWhereStmt = function(req, res, tableFields, prefix, additionalStmts) {
           switch (state) {
             case 0:
               if (token.type != 'field' || tableFields.all.indexOf(token.value) == -1) {
-                errors.reportBadRequest(res, "Expected a valid field identifier, but got  '" + token.value + "'");
+                utils.reportBadRequest(res, "Expected a valid field identifier, but got  '" + token.value + "'");
                 where = null;
                 state = 4;
               } else {
@@ -174,7 +175,7 @@ var buildWhereStmt = function(req, res, tableFields, prefix, additionalStmts) {
   
             case 1:
               if (token.type != 'operator') {
-                errors.reportBadRequest(res, "Expected a valid predicate, but got  '" + token.value + "'");
+                utils.reportBadRequest(res, "Expected a valid predicate, but got  '" + token.value + "'");
                 where = null;
                 state = 4;
               } else {
@@ -189,11 +190,11 @@ var buildWhereStmt = function(req, res, tableFields, prefix, additionalStmts) {
   
             case 2:
               if (token.type === 'field') {
-                errors.reportBadRequest(res, "Value must be surrounded by single quotes (e.g., '" + token.value + "')");
+                utils.reportBadRequest(res, "Value must be surrounded by single quotes (e.g., '" + token.value + "')");
                 where = null;
                 state = 4;
               } else if (token.type != 'value') {
-                errors.reportBadRequest(res, "Expected a value, but got '" + token.value + "'");
+                utils.reportBadRequest(res, "Expected a value, but got '" + token.value + "'");
                 where = null;
                 state = 4;
               } else {

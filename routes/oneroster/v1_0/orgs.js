@@ -47,9 +47,8 @@ function buildOrg(row, hrefBase, metaFields) {
 
 function queryOrg(req, res, next, type) {
     db.getData(req, res, table, [req.params.id, type], 'sourcedId = ? ' + (type ? ' AND type = ?' : '')).then((data) => {
-        const hrefBase = utils.getHrefBase(req);
         const wrapper = {
-            orgs: buildOrg(data.results[0], hrefBase, data.fields.metaFields)
+            orgs: buildOrg(data.results[0], data.hrefBase, data.fields.metaFields)
         };
         res.json(wrapper);
     });
@@ -57,11 +56,10 @@ function queryOrg(req, res, next, type) {
 
 function queryOrgs(req, res, next, type) {
     db.getData(req, res, table, [type], type ? ' type = ?' : '').then((data) => {
-        const hrefBase = utils.getHrefBase(req);
         const wrapper = {};
         wrapper.orgs = [];
         data.results.forEach(function(row) {
-            wrapper.orgs.push(buildOrg(row, hrefBase, data.fields.metaFields));
+            wrapper.orgs.push(buildOrg(row, data.hrefBase, data.fields.metaFields));
         })
         res.json(wrapper);
     });
