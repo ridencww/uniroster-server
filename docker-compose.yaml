@@ -12,8 +12,11 @@ services:
       MYSQL_ROOT_PASSWORD: password
   uniroster:
     container_name: uniroster-dev
-    build: .
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
     ports:
-      - "3000:3000"
+      - "80:80"
     volumes:
       - .:/uniroster-server
