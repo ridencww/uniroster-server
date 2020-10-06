@@ -63,9 +63,9 @@ function queryAcademicSessions(req, res, next, type) {
 };
 
 var queryAcademicSessionsForSchool = function(req, res, next, type) {
-    db.getData(req, res, table, [req.params.id],
+    db.getData(req, res, table, [req.params.id, type],
                true, 'FROM academicsessions a, classes c ',
-               'a', 'c.termSourcedId = a.sourcedId AND c.schoolSourcedId = ?'
+               'a', `c.termSourcedId = a.sourcedId AND c.schoolSourcedId = ?${type ? ' AND type = ?' : ''}`
     ).then((data) => {
         const academicSessions = [];
         data.results.forEach(function(row) {
@@ -93,6 +93,10 @@ router.get('/terms/:id', function(req, res, next) {
 
 router.get('/schools/:id/academicSessions', function(req, res, next) {
     queryAcademicSessionsForSchool(req, res, next);
+});
+
+router.get('/schools/:id/terms', function(req, res, next) {
+    queryAcademicSessionsForSchool(req, res, next, "term");
 });
 
 module.exports = router;
