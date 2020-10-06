@@ -2,14 +2,16 @@ const crypto = require('crypto');
 const mysql = require('promise-mysql');
 
 const config = require('../config');
+const tokenizer = require('./tokenizer');
 const utils = require('./utils');
 
-const pool = mysql.createPool({
+let pool;
+mysql.createPool({
     connectionLimit: config.db.connectionLimit,
     host: config.db.host,
     user: config.db.user,
     password: config.db.password
-});
+}).then((p) => {pool = p;});
 
 const getData = function(req, res, table, queryValues, distinct, fromStmt, wherePrefix, additionalWhereStmts) {
     const datasetSql = "SELECT dataset FROM clients where client_id = (SELECT client_id FROM tokens WHERE access_token = ?)";
@@ -36,17 +38,9 @@ const getData = function(req, res, table, queryValues, distinct, fromStmt, where
     });
 };
 
-const query = function(sql, values) {
-    return pool.then((pool) => {
-        return pool.query(sql, values);
-    })
-}
-
 const queryDatabase = function(database, sql, values) {
     let connection;
-    return pool.then((pool) => {
-        return pool.getConnection();
-    }).then((conn) => {
+    return pool.getConnection().then((conn) => {
         connection = conn;
         conn.changeUser({database: database});
         return conn.query(sql, values);
@@ -58,7 +52,7 @@ const queryDatabase = function(database, sql, values) {
 
 const tableFields = function(table) {
     const sql = "SELECT column_name FROM information_schema.columns WHERE table_name = ?"
-    return query(sql, [table]).then((results) => {
+    return pool.query(sql, [table]).then((results) => {
         const all = [];
         const metaFields = [];
         const requested = [];
@@ -83,8 +77,8 @@ const buildLimitStmt = function(req) {
     var limit = isNaN(Number(req.query.limit)) ? '' : 'LIMIT ' + Number(req.query.limit);
     var offset = isNaN(Number(req.query.offset)) ? '' : 'OFFSET ' + Number(req.query.offset);
   
-    // Failsafe to avoid clobbering server
-    if (limit === '') limit = 'LIMIT 1000';
+    // IMS Specification: Default limit MUST be 100
+    if (limit === '') limit = 'LIMIT 100';
   
     return ' ' + limit + ' ' + offset;
 };
@@ -169,7 +163,7 @@ var buildWhereStmt = function(req, res, tableFields, prefix, additionalStmts) {
                 where = null;
                 state = 4;
               } else {
-                where += ' ' + alias + db.pool.escapeId(token.value);
+                where += ' ' + alias + pool.escapeId(token.value);
                 state = 1;
               }
               break;
@@ -204,7 +198,7 @@ var buildWhereStmt = function(req, res, tableFields, prefix, additionalStmts) {
                   haveContains = 0;
                   value = '%' + value + '%';
                 }
-                where += " " + db.pool.escape(value);
+                where += " " + pool.escape(value);
                 state = 3;
               }
               break;
@@ -245,7 +239,7 @@ module.exports = {
     buildSelectStmt: buildSelectStmt,
     buildWhereStmt: buildWhereStmt,
     getData: getData,
-    query: query,
+    pool: pool,
     queryDatabase: queryDatabase,
     tableFields: tableFields,
 };
