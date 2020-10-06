@@ -1,6 +1,8 @@
+const crypto = require('crypto');
+const mysql = require('promise-mysql');
+
 const config = require('../config');
 const utils = require('./utils');
-const mysql = require('promise-mysql');
 
 const pool = mysql.createPool({
     connectionLimit: config.db.connectionLimit,
@@ -11,11 +13,10 @@ const pool = mysql.createPool({
 
 const getData = function(req, res, table, queryValues, distinct, fromStmt, wherePrefix, additionalWhereStmts) {
     const datasetSql = "SELECT dataset FROM clients where client_id = (SELECT client_id FROM tokens WHERE access_token = ?)";
-    const token = req.headers.authorization.split(' ')[1];
-
+    const shaToken = crypto.createHash("sha256").update(req.headers.authorization.split(' ')[1]).digest("hex");
     let dataset, fields;
 
-    return queryDatabase(config.db.authDatabase, datasetSql, [token]).then((results) => {
+    return queryDatabase(config.db.authDatabase, datasetSql, [shaToken]).then((results) => {
         dataset = results[0].dataset;
         return tableFields(table);
     }).then((results) => {

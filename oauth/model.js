@@ -1,4 +1,4 @@
-const crypto = require('crypto')
+const crypto = require('crypto');
 const config = require('../config');
 const db = require('../utils/database');
 
@@ -25,8 +25,9 @@ module.exports = {
     },
 
     saveToken: (token, client, user) => {
+        const shaToken = crypto.createHash("sha256").update(token.accessToken).digest("hex");
         const query = "INSERT INTO tokens (access_token, access_token_expires_at, client_id) VALUES (?)";
-        const values = [[token.accessToken, token.accessTokenExpiresAt.getTime(), client.clientId]]
+        const values = [[shaToken, token.accessTokenExpiresAt.getTime(), client.clientId]]
         return db.queryDatabase(config.db.authDatabase, query, values).then((results) => {
             return {
                 accessToken: token.accessToken,
@@ -38,8 +39,9 @@ module.exports = {
     },
 
     getAccessToken: token => {
+        const shaToken = crypto.createHash("sha256").update(token).digest("hex");
         const query = "SELECT access_token, access_token_expires_at, client_id FROM tokens WHERE access_token = ?";
-        const values = [token];
+        const values = [shaToken];
         return db.queryDatabase(config.db.authDatabase, query, values).then((results) => {
             return results ? {
                 accessToken: results[0].access_token,
