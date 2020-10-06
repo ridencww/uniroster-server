@@ -128,7 +128,7 @@ const buildSelectStmt = function(req, res, tableFields, distinct, prefix, allowB
             }
       
             if (select.length > 0) select += ",";
-            select += `${alias}\`${field.replace('.', '#')}\``
+            select += pool.escapeId(`${alias}${field.replace('.', '#')}`);
         });
     
         // Fixup for allowButIgnore fields to insure one field is in the select list
