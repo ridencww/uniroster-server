@@ -13,7 +13,7 @@ mysql.createPool({
     password: config.db.password
 }).then((p) => {pool = p;});
 
-const getData = function(req, res, table, queryValues, distinct, fromStmt, wherePrefix, additionalWhereStmts) {
+const getData = function(req, res, table, queryValues, distinct, selectPrefix, fromStmt, wherePrefix, additionalWhereStmts) {
     const datasetSql = "SELECT dataset FROM clients where client_id = (SELECT client_id FROM tokens WHERE access_token = ?)";
     const shaToken = crypto.createHash("sha256").update(req.headers.authorization.split(' ')[1]).digest("hex");
     let dataset, fields;
@@ -23,7 +23,7 @@ const getData = function(req, res, table, queryValues, distinct, fromStmt, where
         return tableFields(table);
     }).then((results) => {
         fields = results;
-        const select = buildSelectStmt(req, res, fields, distinct);
+        const select = buildSelectStmt(req, res, fields, distinct, selectPrefix);
         const from = fromStmt || `FROM ${table}`;
         const where = buildWhereStmt(req, res, fields, wherePrefix, additionalWhereStmts);
         const orderBy = buildOrderByStmt(req, res, fields);
@@ -226,7 +226,7 @@ var buildWhereStmt = function(req, res, tableFields, prefix, additionalStmts) {
         where += additionalStmts;
       }
       if (where.length > 0) {
-        where = 'WHERE ' + where;
+        where = `WHERE ${where}`
       }
     }
   
