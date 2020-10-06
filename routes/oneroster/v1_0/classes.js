@@ -1,293 +1,138 @@
-var app = require('../../../uniroster-server.js');
-var db = require('../../../lib/database.js');
-var express = require('express');
-var utils = require('../../../lib/onerosterUtils.js');
+const db = require('../../../utils/database');
+const router = require('express').Router();
+const table = 'classes';
 
-var router = express.Router();
-
-var buildClass = function(row, hrefBase, metaFields) {
-  var clazz = {};
-  clazz.sourcedId = row.sourcedId;
-  clazz.status = row.status ? row.status : "active";
-  clazz.dateLastModified = row.dateLastModified;
-
-  var metadata = {};
-  metaFields.forEach(function(field) {
-    metadata[field.jsonColumn] = row[field.dbColumn];
-  });
-  if (metaFields.length > 0) {
-    clazz.metadata = metadata;
-  }
-
-  clazz.title = row.title;
-  clazz.classCode = row.classCode;
-  clazz.classType = row.classType;
-  clazz.location = row.location;
-  clazz.grade = row.grade;
-
-  if (row.subjects) {
-    var subjects = [];
-    var fields = row.subjects.toString().split(",");
-    fields.forEach(function(subject) {
-      subjects.push(subject);
-    });
-    clazz.subjects = subjects;
-  }
-
-  if (row.courseSourcedId) {
-    var course = {};
-    course.href = hrefBase + '/courses/' + row.courseSourcedId;
-    course.sourcedId = row.courseSourcedId;
-    course.type = 'course';
-    clazz.course = course;
-  }
-
-  if (row.schoolSourcedId) {
-    var school = {};
-    school.href = hrefBase + '/orgs/' + row.schoolSourcedId;
-    school.sourcedId = row.schoolSourcedId;
-    school.type = 'org';
-    clazz.school = school;
-  }
-
-  if (row.termsSourcedId) {
-    var terms = [];
-    var fields = row.termsSourcedId.toString().split(",");
-    fields.forEach(function(sid) {
-      var term = {};
-      term.href = hrefBase + '/academicSession/' + sid;
-      term.sourcedId = sid;
-      term.type = 'academicSession';
-      terms.push(term);
-    });
-    clazz.terms = terms;
-  }
-
-  return clazz;
-};
-
-var queryClass = function(req, res, next) {
-  db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'classes', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields);
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields, '', 'sourcedId = ?');
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql = select + 'FROM classes ';
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, [req.params.id], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        if (rows.length == 0) {
-          utils.reportNotFound(res);
-        } else {
-          var wrapper = {};
-          wrapper.class = buildClass(rows[0], hrefBase, fields.metaFields);
-          res.json(wrapper);
-        }
-      });
-    });
-  });
-};
-
-var queryClasses = function(req, res, next) {
-  db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'classes', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields);
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields);
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql = select + 'FROM classes ';
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        var wrapper = {};
-        wrapper.classes = [];
-        rows.forEach(function(row) {
-          wrapper.classes.push(buildClass(row, hrefBase, fields.metaFields));
+function buildClass(row, hrefBase, metaFields) {
+    const clazz = {
+        sourcedId: row.sourcedId,
+        status: row.status || "active",
+        dateLastModified: row.dateLastModified,
+        title: row.title,
+        classCode: row.classCode,
+        classType: row.classType,
+        location: row.location,
+        grade: row.grade
+    };
+  
+    if (metaFields.length > 0) {
+        clazz.metadata = {};
+        metaFields.forEach(function(field) {
+            clazz.metadata[field.jsonColumn] = row[field.dbColumn];
         });
-        res.json(wrapper);
-      });
-    });
-  });
+    }
+  
+    if (row.subjects) {
+        clazz.subjects = [];
+        row.subjects.toString().split(",").forEach(function(subject) {
+            clazz.subjects.push(subject);
+        });
+    }
+  
+    if (row.courseSourcedId) {
+        clazz.course = {
+            href: `${hrefBase}/courses/${row.courseSourcedId}`,
+            sourcedId: row.courseSourcedId,
+            type: 'course'
+        };
+    }
+  
+    if (row.schoolSourcedId) {
+        clazz.school = {
+            href: `${hrefBase}/orgs/${row.schoolSourcedId}`,
+            sourcedId: row.schoolSourcedId,
+            type: 'org'
+        };
+    }
+  
+    if (row.termsSourcedId) {
+        clazz.terms = [];
+        row.termsSourcedId.toString().split(",").forEach(function(sid) {
+            clazz.terms.push({
+                href: `${hrefBase}/academicSession/${sid}`,
+                sourcedId: sid,
+                type: 'academicSession'
+            });
+        });
+    }
+
+    return clazz;
 };
 
-var queryClassesFromAnchor = function(req, res, next, anchorTableField) {
-  db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'classes', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields);
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields, '', anchorTableField + ' = ?');
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql = select + 'FROM classes ';
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, [req.params.id], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        var wrapper = {};
-        wrapper.classes = [];
-        rows.forEach(function(row) {
-          wrapper.classes.push(buildClass(row, hrefBase, fields.metaFields));
-        });
-        res.json(wrapper);
-      });
+function queryClass (req, res, next) {
+    db.getData(req, res, table, [req.params.id], false, '', '', 'sourcedId = ?').then((data) => {
+        res.json({class: buildClass(data.results[0], data.hrefBase, data.fields.metaFields)});
     });
-  });
+};
+
+function queryClasses(req, res, next) {
+    db.getData(req, res, table).then((data) => {
+        const classes = [];
+        data.results[0].rows.forEach(function(row) {
+            classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
+        });
+        res.json({classes: classes});
+    });
+};
+
+function queryClassesFromAnchor(req, res, next, anchorTableField) {
+    db.getData(req, res, table, [req.params.id], false, '', '', `${anchorTableField} = ?`).then((data) => {
+        const classes = [];
+        data.results.forEach(function(row) {
+            classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
+        });
+        res.json({classes: classes});
+    });
 };
 
 var queryClassesFromUser = function(req, res, next, userType) {
-  db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'classes', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields, 'c');
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var userQualifier = '';
-      if (userType) {
+    const fromStmt = "FROM users u JOIN enrollments e ON e.userSourcedId = u.sourcedId JOIN classes c ON c.sourcedId = e.classSourcedId ";
+    let userQualifier = "";
+    if (userType) {
         if (userType == 'student') {
-          userQualifier = " AND e.role = 'student' ";
+            userQualifier = " AND e.role = 'student' ";
         } else if (userType == 'teacher') {
-          userQualifier = " AND e.role = 'teacher' and e.primary = 'True' ";
+            userQualifier = " AND e.role = 'teacher' and e.primary = 'True' ";
         }
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields, 'c', ' u.sourcedId = ? ' + userQualifier);
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql = select + 'FROM users u ';
-      sql += 'JOIN enrollments e ON e.userSourcedId = u.sourcedId ';
-      sql += 'JOIN classes c ON c.sourcedId = e.classSourcedId ';
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, [req.params.id], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        var wrapper = {};
-        wrapper.classes = [];
-        rows.forEach(function(row) {
-          wrapper.classes.push(buildClass(row, hrefBase, fields.metaFields));
+    }
+    db.getData(req, res, table, [req.params.id], false, 'c', fromStmt, 'c', ` u.sourceId = ? ${userQualifier}`).then((data) => {
+        const classes = [];
+        data.results.forEach(function(row) {
+            classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
         });
-        res.json(wrapper);
-      });
+        res.json({classes: classes});
     });
-  });
 };
 
 router.get('/classes', function(req, res, next) {
-  queryClasses(req, res, next);
+    queryClasses(req, res, next);
 });
 
 router.get('/classes/:id', function(req, res, next) {
-  queryClass(req, res, next);
+    queryClass(req, res, next);
 });
 
 router.get('/academicSessions/:id/classes', function(req, res, next) {
-  queryClassesFromAnchor(req, res, next, 'termSourcedId');
+    queryClassesFromAnchor(req, res, next, 'termSourcedId');
 });
 
 router.get('/courses/:id/classes', function(req, res, next) {
-  queryClassesFromAnchor(req, res, next, 'courseSourcedId');
+    queryClassesFromAnchor(req, res, next, 'courseSourcedId');
 });
 
 router.get('/schools/:id/classes', function(req, res, next) {
-  queryClassesFromAnchor(req, res, next, 'schoolSourcedId');
+    queryClassesFromAnchor(req, res, next, 'schoolSourcedId');
 });
 
 router.get('/students/:id/classes', function(req, res, next) {
-  queryClassesFromUser(req, res, next, 'student');
+    queryClassesFromUser(req, res, next, 'student');
 });
 
 router.get('/teachers/:id/classes', function(req, res, next) {
-  queryClassesFromUser(req, res, next, 'teacher');
+    queryClassesFromUser(req, res, next, 'teacher');
 });
 
 router.get('/users/:id/classes', function(req, res, next) {
-  queryClassesFromUser(req, res, next);
+    queryClassesFromUser(req, res, next);
 });
 
 module.exports = router;
