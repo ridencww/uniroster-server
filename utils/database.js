@@ -132,7 +132,7 @@ const buildSelectStmt = function(req, res, tableFields, distinct, prefix, allowB
         });
     
         // Fixup for allowButIgnore fields to insure one field is in the select list
-        if (select.length === 0) select = alias + 'sourcedId';
+        if (select.length === 0) select = `${alias}sourceId`;
     
         return `${selectPrefix} ${select} `;
     } else {

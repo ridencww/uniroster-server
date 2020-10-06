@@ -43,7 +43,7 @@ function buildAcademicSession(row, hrefBase, metaFields) {
 };
 
 function queryAcademicSession(req, res, next, type) {
-    db.getData(req, res, table, [req.params.id, type], 'sourcedId = ? ' + (type ? 'type = ?' : '')).then((data) => {
+    db.getData(req, res, table, [req.params.id, type], false, '', `sourcedId = ?${type ? ' AND type = ?' : ''}`).then((data) => {
         res.json({
             academicSession: buildAcademicSession(data.results[0], data.hrefBase, data.fields.metaFields)
         });
@@ -51,7 +51,7 @@ function queryAcademicSession(req, res, next, type) {
 };
 
 function queryAcademicSessions(req, res, next, type) {
-    db.getData(req, res, table, [type], type ? 'type = ?' : '').then((data) => {
+    db.getData(req, res, table, [type], false, '', type ? 'type = ?' : '').then((data) => {
         const academicSessions = [];
         data.results.forEach(function(row) {
             academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
