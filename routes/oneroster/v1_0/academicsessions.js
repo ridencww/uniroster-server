@@ -23,8 +23,8 @@ function buildAcademicSession(row, hrefBase, metaFields) {
     if (row.parentSourcedId) {
         academicSession.parent = {
             href: `${hrefBase}/academicSessions/${row.parentSourcedId}`,
-            sourcedId = row.parentSourcedId,
-            type = 'academicSession'
+            sourcedId: row.parentSourcedId,
+            type: 'academicSession'
         };
     }
   
