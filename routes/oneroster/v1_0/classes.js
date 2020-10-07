@@ -59,13 +59,21 @@ function buildClass(row, hrefBase, metaFields) {
 };
 
 function queryClass (req, res, next) {
-    db.getData(req, res, table, [req.params.id], false, '', '', 'sourcedId = ?').then((data) => {
-        res.json({class: buildClass(data.results[0], data.hrefBase, data.fields.metaFields)});
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id],
+        additionalWhereStmts: 'sourcedId = ?'
+    }).then((data) => {
+        res.json({
+            class: buildClass(data.results[0], data.hrefBase, data.fields.metaFields)
+        });
     });
 };
 
 function queryClasses(req, res, next) {
-    db.getData(req, res, table).then((data) => {
+    db.getData(req, res, {
+        table: table
+    }).then((data) => {
         const classes = [];
         data.results[0].rows.forEach(function(row) {
             classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
@@ -75,7 +83,11 @@ function queryClasses(req, res, next) {
 };
 
 function queryClassesFromAnchor(req, res, next, anchorTableField) {
-    db.getData(req, res, table, [req.params.id], false, '', '', `${anchorTableField} = ?`).then((data) => {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id],
+        additionalWhereStmts: `${anchorTableField} = ?`
+    }).then((data) => {
         const classes = [];
         data.results.forEach(function(row) {
             classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
@@ -84,8 +96,7 @@ function queryClassesFromAnchor(req, res, next, anchorTableField) {
     });
 };
 
-var queryClassesFromUser = function(req, res, next, userType) {
-    const fromStmt = "FROM users u JOIN enrollments e ON e.userSourcedId = u.sourcedId JOIN classes c ON c.sourcedId = e.classSourcedId ";
+function queryClassesFromUser(req, res, next, userType) {
     let userQualifier = "";
     if (userType) {
         if (userType == 'student') {
@@ -94,7 +105,14 @@ var queryClassesFromUser = function(req, res, next, userType) {
             userQualifier = " AND e.role = 'teacher' and e.primary = 'True' ";
         }
     }
-    db.getData(req, res, table, [req.params.id], false, 'c', fromStmt, 'c', ` u.sourceId = ? ${userQualifier}`).then((data) => {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id],
+        selectPrefix: 'c',
+        fromStmt: "FROM users u JOIN enrollments e ON e.userSourcedId = u.sourcedId JOIN classes c ON c.sourcedId = e.classSourcedId ",
+        wherePrefix: 'c',
+        additionalWhereStmts: ` u.sourceId = ? ${userQualifier}`
+    }).then((data) => {
         const classes = [];
         data.results.forEach(function(row) {
             classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));

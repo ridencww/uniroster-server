@@ -13,30 +13,36 @@ mysql.createPool({
     password: config.db.password
 }).then((p) => {pool = p;});
 
-const getData = function(req, res, table, queryValues, distinct, selectPrefix, fromStmt, wherePrefix, additionalWhereStmts) {
+const getData = function(req, res, sqlParams) {
     const datasetSql = "SELECT dataset FROM clients where client_id = (SELECT client_id FROM tokens WHERE access_token = ?)";
     const shaToken = crypto.createHash("sha256").update(req.headers.authorization.split(' ')[1]).digest("hex");
     let dataset, fields;
 
     return queryDatabase(config.db.authDatabase, datasetSql, [shaToken]).then((results) => {
         dataset = results[0].dataset;
-        return tableFields(table);
+        return tableFields(sqlParams.table);
     }).then((results) => {
         fields = results;
-        const select = buildSelectStmt(req, res, fields, distinct, selectPrefix);
+        const select = buildSelectStmt(req, res, fields, sqlParams);
 
         let from;
-        if (typeof fromStmt === "function") {
-            from = fromStmt(select, fields);
+        if (sqlParams.fromStmt) {
+            if (typeof fromStmt === "function") {
+                from = sqlParams.fromStmt(select, fields);
+            } else {
+                from = sqlParams.fromStmt;
+            }
         } else {
-            from = fromStmt || `FROM ${table}`;
+            from = `FROM ${sqlParams.table}`;
         }
-        
-        const where = buildWhereStmt(req, res, fields, wherePrefix, additionalWhereStmts);
+
+        const where = buildWhereStmt(req, res, fields, sqlParams);
         const orderBy = buildOrderByStmt(req, res, fields);
-        const sql = `${select} ${from} ${where} ${orderBy} ${buildLimitStmt(req)}`;
+        const limit = buildLimitStmt(req, sqlParams);
+
+        const sql = `${select} ${from} ${where} ${orderBy} ${limit}`;
         console.log(sql);
-        return queryDatabase(dataset, sql, queryValues);
+        return queryDatabase(dataset, sql, sqlParams.queryValues);
     }).then((results) => {
         return {
             fields: fields,
@@ -44,7 +50,7 @@ const getData = function(req, res, table, queryValues, distinct, selectPrefix, f
             results: results
         }
     });
-};
+}
 
 const queryDatabase = function(database, sql, values) {
     let connection;
@@ -81,35 +87,52 @@ const tableFields = function(table) {
     })
 }
 
-const buildLimitStmt = function(req) {
-    var limit = isNaN(Number(req.query.limit)) ? '' : 'LIMIT ' + Number(req.query.limit);
-    var offset = isNaN(Number(req.query.offset)) ? '' : 'OFFSET ' + Number(req.query.offset);
+const buildLimitStmt = function(req, sqlParams) {
+    let limit = 'LIMIT ', offset = 'OFFSET ';
+
+    if (sqlParams.limit) {
+        limit += sqlParams.limit;
+    } else if (req.query.limit && !isNaN(Number(req.query.limit))) {
+        limit += Number(req.query.limit);
+    } else {
+        // IMS Specification: Default limit MUST be 100
+        limit += '100';
+    }
+
+    if (sqlParams.offset) {
+        offset += sqlParams.offset;
+    } else if (req.query.offset && !isNaN(Number(req.query.offset))) {
+        offset += Number(req.query.offset);
+    } else {
+        offset = "";
+    }
   
-    // IMS Specification: Default limit MUST be 100
-    if (limit === '') limit = 'LIMIT 100';
-  
-    return ' ' + limit + ' ' + offset;
+    return ` ${limit} ${offset}`;
 };
 
 const buildOrderByStmt = function(req, res, tableFields) {
-    if (req.query.sort && tableFields && tableFields.all.indexOf(req.query.sort) == -1) {
-        utils.reportBadRequest(res, "'" + req.query.sort + "' is not a valid field.");
-        return null;
+    if (req.query.sort) {
+        if (tableFields && tableFields.all.indexOf(req.query.sort) == -1) {
+            utils.reportBadRequest(res, "'" + req.query.sort + "' is not a valid field.");
+            return null;
+        }
+
+        regex = new RegExp(/^(asc|desc)$/i);
+        if (req.query.orderBy && !regex.test(req.query.orderBy)) {
+            utils.reportBadRequest(res, "'" + req.query.orderBy + "' is not a valid orderBy value.");
+            return null;
+        }
+
+        const orderBy = req.query.orderBy ? req.query.orderBy : 'ASC';
+        return `ORDER BY ${req.query.sort} ${orderBy} `;
+    } else {
+        return ''
     }
-  
-    regex = new RegExp(/^(asc|desc)$/i);
-    if (req.query.orderBy && !regex.test(req.query.orderBy)) {
-        utils.reportBadRequest(res, "'" + req.query.orderBy + "' is not a valid orderBy value.");
-        return null;
-    }
-  
-    var orderBy = req.query.orderBy ? req.query.orderBy : 'ASC';
-    return req.query.sort ? 'ORDER BY ' + req.query.sort + ' ' + orderBy + ' ' : '';
 };
   
-const buildSelectStmt = function(req, res, tableFields, distinct, prefix, allowButIgnoreThese) {
-    const alias = prefix ? prefix + '.' : '';
-    const selectPrefix = distinct ? 'SELECT DISTINCT' : 'SELECT';
+const buildSelectStmt = function(req, res, tableFields, sqlParams) {
+    const alias = sqlParams.selectPrefix ? `${sqlParams.selectPrefix}.` : "";
+    let select = sqlParams.distinct ? 'SELECT DISTINCT ' : 'SELECT ';
 
     if (req.query.fields) {
         // Store fields that act as placeholders (e.g., demographics for u.userSourcedId)
@@ -117,7 +140,8 @@ const buildSelectStmt = function(req, res, tableFields, distinct, prefix, allowB
             tableFields.all.push(allowButIgnoreThese);
         }
     
-        let select = '';
+        let addedField = false;
+        const badFields = [];
         req.query.fields.toString().split(",").forEach(function(field) {
             // Store away the list of fields requested for future reference
             if (tableFields) {
@@ -127,115 +151,122 @@ const buildSelectStmt = function(req, res, tableFields, distinct, prefix, allowB
             // If validFields supplied, field must be in list
             if (tableFields && tableFields.all.indexOf(field) == -1) {
                 utils.reportBadRequest(res, `'${field}' is not a valid field.`);
-                return null;
+                badFields.push(field);
+                return;
             }
       
             // Don't add ignored fields to select list
-            if (allowButIgnoreThese && allowButIgnoreThese.indexOf(field) != -1) {
-                continue;
+            if (sqlParams.allowButIgnoreThese && sqlParams.allowButIgnoreThese.indexOf(field) != -1) {
+                return;
             }
       
             if (select.length > 0) select += ",";
             select += pool.escapeId(`${alias}${field.replace('.', '#')}`);
         });
+
+        if (badFields.length > 0) {
+            const message = badFields.length === 1 ? `'${badFields[0]}' is not a valid field` : `${badFields.join(', ')} are not valid fields`;
+            utils.reportBadRequest(res, message);
+            return null;
+        }
     
         // Fixup for allowButIgnore fields to insure one field is in the select list
         if (select.length === 0) select = `${alias}sourceId`;
     
         return `${selectPrefix} ${select} `;
     } else {
-        return `${selectPrefix} ${alias}* `;
+        return `${select} ${alias}* `;
     }
 };
   
-var buildWhereStmt = function(req, res, tableFields, prefix, additionalStmts) {
-    var where = '';
+var buildWhereStmt = function(req, res, tableFields, sqlParams) {
+    let where = '';
   
-    var alias = prefix ? prefix + '.' : '';
+    const alias = sqlParams.wherePrefix ? `${sqlParams.wherePrefix}.` : '';
   
     if (req.query.filter) {
-      tokenizer.initOneRosterV1();
-      var tokens = tokenizer.tokenize(req.query.filter);
-  
-      var i = 0;
-      var state = 0;
-      var token = tokens[i++];
-      var haveContains = 0;
-  
-      while (token.type !== 'end') {
-        if (token.type != 'whitespace') {
-          switch (state) {
-            case 0:
-              if (token.type != 'field' || tableFields.all.indexOf(token.value) == -1) {
-                utils.reportBadRequest(res, "Expected a valid field identifier, but got  '" + token.value + "'");
-                where = null;
-                state = 4;
-              } else {
-                where += ' ' + alias + pool.escapeId(token.value);
-                state = 1;
-              }
-              break;
-  
-            case 1:
-              if (token.type != 'operator') {
-                utils.reportBadRequest(res, "Expected a valid predicate, but got  '" + token.value + "'");
-                where = null;
-                state = 4;
-              } else {
-                if (token.value === 'contains') {
-                  haveContains = 1;
-                  token.value = 'LIKE';
+        tokenizer.initOneRosterV1();
+        const tokens = tokenizer.tokenize(req.query.filter);
+    
+        let i = 0;
+        let state = 0;
+        let token = tokens[i++];
+        let haveContains = 0;
+    
+        while (token.type !== 'end') {
+            if (token.type != 'whitespace') {
+                switch (state) {
+                    case 0:
+                        if (token.type != 'field' || tableFields.all.indexOf(token.value) == -1) {
+                            utils.reportBadRequest(res, "Expected a valid field identifier, but got  '" + token.value + "'");
+                            where = null;
+                            state = 4;
+                        } else {
+                            where += ' ' + alias + pool.escapeId(token.value);
+                            state = 1;
+                        }
+                        break;
+          
+                    case 1:
+                        if (token.type != 'operator') {
+                            utils.reportBadRequest(res, "Expected a valid predicate, but got  '" + token.value + "'");
+                            where = null;
+                            state = 4;
+                        } else {
+                            if (token.value === 'contains') {
+                                haveContains = 1;
+                                token.value = 'LIKE';
+                            }
+                            where += ' ' + token.value;
+                            state = 2;
+                        }
+                        break;
+          
+                    case 2:
+                        if (token.type === 'field') {
+                            utils.reportBadRequest(res, "Value must be surrounded by single quotes (e.g., '" + token.value + "')");
+                            where = null;
+                            state = 4;
+                        } else if (token.type != 'value') {
+                            utils.reportBadRequest(res, "Expected a value, but got '" + token.value + "'");
+                            where = null;
+                            state = 4;
+                        } else {
+                            var value = token.value.replace(/^'|'$/g, "");
+                            if (haveContains == 1) {
+                                haveContains = 0;
+                                value = '%' + value + '%';
+                            }
+                            where += " " + pool.escape(value);
+                            state = 3;
+                        }
+                        break;
+          
+                    case 3:
+                        if (token.type == 'boolean') {
+                            where += ' ' + token.value;
+                        }
+                        state = 0;
+                        break;
+          
+                    case 4:
+                        break;
                 }
-                where += ' ' + token.value;
-                state = 2;
-              }
-              break;
-  
-            case 2:
-              if (token.type === 'field') {
-                utils.reportBadRequest(res, "Value must be surrounded by single quotes (e.g., '" + token.value + "')");
-                where = null;
-                state = 4;
-              } else if (token.type != 'value') {
-                utils.reportBadRequest(res, "Expected a value, but got '" + token.value + "'");
-                where = null;
-                state = 4;
-              } else {
-                var value = token.value.replace(/^'|'$/g, "");
-                if (haveContains == 1) {
-                  haveContains = 0;
-                  value = '%' + value + '%';
-                }
-                where += " " + pool.escape(value);
-                state = 3;
-              }
-              break;
-  
-            case 3:
-              if (token.type == 'boolean') {
-                where += ' ' + token.value;
-              }
-              state = 0;
-              break;
-  
-            case 4:
-              break;
-          }
+            }
+            token = tokens[i++];
         }
-        token = tokens[i++];
-      }
     }
   
     if (where !== null) {
-      if (additionalStmts) {
-        if (where.length > 0) {
-          where += ' AND ';
+        if (sqlParams.additionalWhereStmts) {
+            if (where.length > 0) {
+                where += ' AND ';
+            }
+            where += sqlParams.additionalWhereStmts;
         }
-        where += additionalStmts;
-      }
-      if (where.length > 0) {
-        where = `WHERE ${where}`
-      }
+        if (where.length > 0) {
+            where = `WHERE ${where}`;
+        }
     }
   
     return where;

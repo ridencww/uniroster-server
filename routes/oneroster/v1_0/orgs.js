@@ -29,22 +29,25 @@ function buildOrg(row, hrefBase, metaFields) {
     }
   
     if (row.childSourcedIds) {
-        const children = [];
+        org.children = [];
         row.childSourcedIds.toString().split(",").forEach(function(sid) {
-            children.push({
+            org.children.push({
                 href: `${hrefBase}/orgs/${sid}`,
                 sourceId: sid,
                 type: 'org'
             });
         });
-        org.children = children;
     }
   
     return org;
 };
 
 function queryOrg(req, res, next, type) {
-    db.getData(req, res, table, [req.params.id, type], false, '', '', '', `sourcedId = ?${type ? ' AND type = ?' : ''}`).then((data) => {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id, type],
+        additionalWhereStmts: `sourcedId = ?${type ? ' AND type = ?' : ''}`
+    }).then((data) => {
         res.json({
             orgs: buildOrg(data.results[0], data.hrefBase, data.fields.metaFields)
         });
@@ -52,14 +55,16 @@ function queryOrg(req, res, next, type) {
 };
 
 function queryOrgs(req, res, next, type) {
-    db.getData(req, res, table, [type], false, '', '', '', type ? ' type = ?' : '').then((data) => {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [type],
+        additionalWhereStmts: type ? ' type = ?' : ''
+    }).then((data) => {
         const orgs = [];
         data.results.forEach(function(row) {
             orgs.push(buildOrg(row, data.hrefBase, data.fields.metaFields));
         })
-        res.json({
-            orgs: orgs
-        });
+        res.json({orgs: orgs});
     });
 };
 
