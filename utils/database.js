@@ -24,10 +24,18 @@ const getData = function(req, res, table, queryValues, distinct, selectPrefix, f
     }).then((results) => {
         fields = results;
         const select = buildSelectStmt(req, res, fields, distinct, selectPrefix);
-        const from = fromStmt || `FROM ${table}`;
+
+        let from;
+        if (typeof fromStmt === "function") {
+            from = fromStmt(select, fields);
+        } else {
+            from = fromStmt || `FROM ${table}`;
+        }
+        
         const where = buildWhereStmt(req, res, fields, wherePrefix, additionalWhereStmts);
         const orderBy = buildOrderByStmt(req, res, fields);
         const sql = `${select} ${from} ${where} ${orderBy} ${buildLimitStmt(req)}`;
+        console.log(sql);
         return queryDatabase(dataset, sql, queryValues);
     }).then((results) => {
         return {
