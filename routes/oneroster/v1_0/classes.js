@@ -111,7 +111,7 @@ function queryClassesFromUser(req, res, next, userType) {
         selectPrefix: 'c',
         fromStmt: "FROM users u JOIN enrollments e ON e.userSourcedId = u.sourcedId JOIN classes c ON c.sourcedId = e.classSourcedId ",
         wherePrefix: 'c',
-        additionalWhereStmts: ` u.sourceId = ? ${userQualifier}`
+        additionalWhereStmts: `u.sourceId = ? ${userQualifier}`
     }).then((data) => {
         const classes = [];
         data.results.forEach(function(row) {

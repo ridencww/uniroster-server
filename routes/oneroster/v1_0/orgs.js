@@ -58,7 +58,7 @@ function queryOrgs(req, res, next, type) {
     db.getData(req, res, {
         table: table,
         queryValues: [type],
-        additionalWhereStmts: type ? ' type = ?' : ''
+        additionalWhereStmts: type ? 'type = ?' : ''
     }).then((data) => {
         const orgs = [];
         data.results.forEach(function(row) {

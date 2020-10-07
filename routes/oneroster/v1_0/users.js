@@ -1,334 +1,202 @@
-var app = require('../../../uniroster-server.js');
-var db = require('../../../lib/database.js');
-var express = require('express');
-var utils = require('../../../lib/onerosterUtils.js');
+const db = require('../../../utils/database');
+const router = require('express').Router();
+const table = 'users';
 
-var router = express.Router();
-
-var buildUser = function(row, hrefBase, metaFields) {
-  var user = {};
-  user.sourcedId = row.sourcedId;
-  user.status = row.status ? row.status : "active";
-  user.dateLastModified = row.dateLastModified;
-
-  var metadata;
-  metaFields.forEach(function(field) {
-    if (typeof row[field.dbColumn] !== 'undefined') {
-      if (typeof metadata === 'undefined') {
-        metadata = {};
-      }
-      metadata[field.jsonColumn] = row[field.dbColumn];
+const demographicsFromStmt = function(select, fields) {
+    if (select.indexOf('*') != -1 || fields.requested.indexOf('demographics') != -1) {
+        return ", d.`userSourcedId` AS demographics FROM users u LEFT JOIN demographics d ON u.sourcedId = d.userSourcedId ";
+    } else {
+        return "FROM users u ";
     }
-  });
-  user.metadata = metadata;
-
-  user.username = row.username;
-  user.userId = row.userId;
-  user.givenName = row.givenName;
-  user.familyName = row.familyName;
-  user.role = row.role;
-  user.identifier = row.identifier;
-  user.email = row.email;
-  user.sms = row.sms;
-  user.phone = row.phone;
-
-  // Parents/guardians -- not used at present
-  //user.agents = null;
-
-  if (row.demographics) {
-    var demographics = {};
-    demographics.href = hrefBase + '/demographics/' + row.demographics;
-    demographics.sourcedId = row.demographics;
-    demographics.type = 'demographics';
-    user.demographics = demographics;
-  }
-
-  if (row.orgSourcedIds) {
-    var orgs = [];
-    var fields = row.orgSourcedIds.toString().split(",");
-    fields.forEach(function(sid) {
-      sid = sid.trim();
-      var o = {};
-      o.href = hrefBase + '/orgs/' + sid;
-      o.sourcedId = sid;
-      o.type = 'org';
-      orgs.push(o);
-    });
-    user.orgs = orgs;
-  }
-
-  return user;
 };
 
-var queryUser = function(req, res, next, role) {
-  db.setup(req, res, function(connection, hrefBase) {
-    db.tableFields(connection, 'users', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields, 'u', "demographics");
-      if (select === null) {
-        connection.release();
-        return;
-      }
+function buildUser(row, hrefBase, metaFields) {
+    var user = {
+        sourcedId: row.sourcedId,
+        status: row.status ? row.status : "active",
+        dateLastModified: row.dateLastModified,
+        username: row.username,
+        userId: row.userId,
+        givenName: row.givenName,
+        familyName: row.familyName,
+        role: row.role,
+        identifier: row.identifier,
+        email: row.email,
+        sms: row.sms,
+        phone: row.phone
+    };
 
-      var where = utils.buildWhereStmt(req, res, fields, 'u', 'sourcedId = ? ' + (role ? ' AND role = ?' : ''));
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql;
-      if (select.indexOf('*') != -1 || fields.requested.indexOf('demographics') != -1) {
-        sql = select + ',d.`userSourcedId` AS demographics FROM users u ';
-        sql += 'LEFT JOIN demographics d ON u.sourcedId = d.userSourcedId ';
-      } else {
-        sql = select + 'FROM users u ';
-      }
-
-      sql += where;
-      sql += orderBy;
-      sql += ' LIMIT 1';
-
-      connection.query(sql, [req.params.id, role], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        if (rows.length == 0) {
-          utils.reportNotFound(res);
-        } else {
-          var wrapper = {};
-          wrapper.user = buildUser(rows[0], hrefBase, fields.metaFields);
-          res.json(wrapper);
-        }
-      });
-    });
-  });
-};
-
-var queryUsers = function(req, res, next, role) {
-  db.setup(req, res, function(connection, hrefBase) {
-    db.tableFields(connection, 'users', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields, 'u', "demographics");
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields, 'u', role ? 'role = ?' : '');
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql;
-      if (select.indexOf('*') != -1 || fields.requested.indexOf('demographics') != -1) {
-        sql = select + ',d.`userSourcedId` AS demographics FROM users u ';
-        sql += 'LEFT JOIN demographics d ON u.sourcedId = d.userSourcedId ';
-      } else {
-        sql = select + 'FROM users u ';
-      }
-
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, [role], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        var wrapper = {};
-        wrapper.users = [];
-        rows.forEach(function(row) {
-          wrapper.users.push(buildUser(row, hrefBase, fields.metaFields));
+  
+    if (metaFields.length > 0) {
+        user.metadata = {};
+        metaFields.forEach(function(field) {
+            if (typeof row[field.dbColumn] !== 'undefined') {
+                user.metadata[field.jsonColumn] = row[field.dbColumn];
+            }
         });
-        res.json(wrapper);
-      });
-    });
-  });
+    }
+
+    if (row.demographics) {
+        user.demographics = {
+            href: `${hrefBase}/demographics/${row.demographics}`,
+            sourcedId: row.demographics,
+            type: 'demographics'
+        };
+    }
+
+    if (row.orgSourcedIds) {
+        user.orgs = [];
+        row.orgSourcedIds.toString().split(",").forEach(function(sid) {
+            sid = sid.trim();
+            user.orgs.push({
+                href: `${hrefBase}/orgs/${sid}`,
+                sourcedId: sid,
+                type: 'org'
+            });
+        });
+    }
+
+    return user;
 };
 
-var queryUsersByClass = function(req, res, next, role) {
-  db.setup(req, res, function(connection, hrefBase) {
-    db.tableFields(connection, 'users', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields, 'u', "demographics");
-      if (select === null) {
-        connection.release();
-        return;
-      }
+function queryUser(req, res, next, role) {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id, role],
+        selectPrefix: 'u',
+        fromStmt: demographicsFromStmt,
+        wherePrefix: 'u',
+        additionalWhereStmts: `sourcedId = ?${role ? ' AND role = ?' : ''}`, 
+        allowButIgnoreThese: "demographics"
+    }).then((data) => {
+        res.json({user: buildUser(data.results[0], data.hrefBase, data.fields.metaFields)})
+    });
+};
 
-      var userQualifier = '';
-      if (role) {
+function queryUsers(req, res, next, role) {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [role],
+        selectPrefix: 'u',
+        fromStmt: demographicsFromStmt,
+        wherePrefix: 'u',
+        additionalWhereStmts: role ? 'role = ?' : '',
+        allowButIgnoreThese: "demographics"
+    }).then((data) => {
+        const users = [];
+        data.results.forEach(function(row) {
+            users.push(buildUser(row, data.hrefBase, data.fields.metaFields));
+        });
+        res.json({users: users})
+    });
+};
+
+function queryUsersByClass(req, res, next, role) {
+    let userQualifier = '';
+    if (role) {
         if (role == 'student') {
-          userQualifier = "AND e.role = 'student' ";
+            userQualifier = "AND e.role = 'student' ";
         } else if (role == 'teacher') {
-          userQualifier = "AND e.role = 'teacher' and e.primary = 'True' ";
+            userQualifier = "AND e.role = 'teacher' and e.primary = 'True' ";
         }
-      }
+    }
 
-      var where = utils.buildWhereStmt(req, res, fields, 'u', 'c.sourcedId = ? ' + userQualifier);
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql;
-      if (select.indexOf('*') != -1 || fields.requested.indexOf('demographics') != -1) {
-        sql = select + ',d.`userSourcedId` AS demographics FROM users u ';
-        sql += 'LEFT JOIN demographics d ON u.sourcedId = d.userSourcedId ';
-        sql += 'JOIN enrollments e ON e.userSourcedId = u.sourcedId ';
-        sql += 'JOIN classes c ON c.sourcedId = e.classSourcedId ';
-      } else {
-        sql = select + 'FROM users u ';
-        sql += 'JOIN enrollments e ON e.userSourcedId = u.sourcedId ';
-        sql += 'JOIN classes c ON c.sourcedId = e.classSourcedId ';
-      }
-
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, [req.params.id], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
+    const fromStmt = function(select, fields) {
+        let sql = '';
+        if (select.indexOf('*') != -1 || fields.requested.indexOf('demographics') != -1) {
+            sql = ',d.`userSourcedId` AS demographics FROM users u ';
+            sql += 'LEFT JOIN demographics d ON u.sourcedId = d.userSourcedId ';
+            sql += 'JOIN enrollments e ON e.userSourcedId = u.sourcedId ';
+            sql += 'JOIN classes c ON c.sourcedId = e.classSourcedId ';
+        } else {
+            sql = 'FROM users u ';
+            sql += 'JOIN enrollments e ON e.userSourcedId = u.sourcedId ';
+            sql += 'JOIN classes c ON c.sourcedId = e.classSourcedId ';
         }
+        return sql;
+    }
 
-        var wrapper = {};
-        wrapper.users = [];
-        rows.forEach(function(row) {
-          wrapper.users.push(buildUser(row, hrefBase, fields.metaFields));
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id],
+        selectPrefix: 'u',
+        fromStmt: fromStmt,
+        wherePrefix: 'u',
+        additionalWhereStmts: `c.sourcedId = ? ${userQualifier}`,
+        allowButIgnoreThese: "demographics"
+    }).then((data) => {
+        const users = [];
+        data.results.forEach(function(row) {
+            users.push(buildUser(row, data.hrefBase, data.fields.metaFields));
         });
-        res.json(wrapper);
-      });
+        res.json({users: users});
     });
-  });
 };
 
 var queryUsersBySchool = function(req, res, next, role) {
-  db.setup(req, res, function(connection, hrefBase) {
-    db.tableFields(connection, 'users', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields, 'u', "demographics");
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var userQualifier = '';
-      if (role) {
+    var userQualifier = '';
+    if (role) {
         if (role == 'student') {
-          userQualifier = "AND u.role = 'student' ";
+            userQualifier = "AND u.role = 'student' ";
         } else if (role == 'teacher') {
-          userQualifier = "AND u.role = 'teacher' ";
+            userQualifier = "AND u.role = 'teacher' ";
         }
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields, 'u', 'u.orgSourcedIds LIKE ? ' + userQualifier);
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql;
-      if (select.indexOf('*') != -1 || fields.requested.indexOf('demographics') != -1) {
-        sql = select + ',d.`userSourcedId` AS demographics FROM users u ';
-        sql += 'LEFT JOIN demographics d ON u.sourcedId = d.userSourcedId ';
-      } else {
-        sql = select + 'FROM users u ';
-      }
-
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, ['%' + req.params.id + '%'], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        var wrapper = {};
-        wrapper.users = [];
-        rows.forEach(function(row) {
-          wrapper.users.push(buildUser(row, hrefBase, fields.metaFields));
+    }
+    db.getData(req, res, {
+        table: table,
+        queryValues: [`%${req.params.id}%`],
+        selectPrefix: 'u',
+        fromStmt: demographicsFromStmt,
+        wherePrefix: 'u',
+        additionalWhereStmts: `u.orgSourceIds LIKE ? ${userQualifier}`,
+        allowButIgnoreThese: "demographics"
+    }).then((data) => {
+        const users = [];
+        data.results.forEach(function(row) {
+            users.push(buildUser(row, data.hrefBase, data.fields.metaFields));
         });
-        res.json(wrapper);
-      });
+        res.json({users: users});
     });
-  });
 };
 
 router.get('/students', function(req, res, next) {
-  queryUsers(req, res, next, "student");
+    queryUsers(req, res, next, "student");
 });
 
 router.get('/students/:id', function(req, res, next) {
-  queryUser(req, res, next, "student");
+    queryUser(req, res, next, "student");
 });
 
 router.get('/teachers', function(req, res, next) {
-  queryUsers(req, res, next, "teacher");
+    queryUsers(req, res, next, "teacher");
 });
 
 router.get('/teachers/:id', function(req, res, next) {
-  queryUser(req, res, next, "teacher");
+    queryUser(req, res, next, "teacher");
 });
 
 router.get('/users', function(req, res, next) {
-  queryUsers(req, res, next);
+    queryUsers(req, res, next);
 });
 
 router.get('/users/:id', function(req, res, next) {
-  queryUser(req, res, next);
+    queryUser(req, res, next);
 });
 
 router.get('/classes/:id/students', function(req, res, next) {
-  queryUsersByClass(req, res, next, "student");
+    queryUsersByClass(req, res, next, "student");
 });
 
 router.get('/classes/:id/teachers', function(req, res, next) {
-  queryUsersByClass(req, res, next, "teacher");
+    queryUsersByClass(req, res, next, "teacher");
 });
 
 router.get('/schools/:id/students', function(req, res, next) {
-  queryUsersBySchool(req, res, next, "student");
+    queryUsersBySchool(req, res, next, "student");
 });
 
 router.get('/schools/:id/teachers', function(req, res, next) {
-  queryUsersBySchool(req, res, next, "teacher");
+    queryUsersBySchool(req, res, next, "teacher");
 });
 
 module.exports = router;

@@ -27,7 +27,7 @@ const getData = function(req, res, sqlParams) {
 
         let from;
         if (sqlParams.fromStmt) {
-            if (typeof fromStmt === "function") {
+            if (typeof sqlParams.fromStmt === "function") {
                 from = sqlParams.fromStmt(select, fields);
             } else {
                 from = sqlParams.fromStmt;
