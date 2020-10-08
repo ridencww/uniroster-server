@@ -1,6 +1,6 @@
 variable "name"            { default = "aurora" }
 variable "engine"          { default = "aurora-mysql" }
-variable "engine_version"  { default = "5.7.mysql_aurora.2.03.2" }
+variable "engine_version"  { default = "5.7.mysql_aurora.2.07.2" }
 variable "instance_class"  { default = "db.t2.small" }
 variable "instance_count"  { default = 1 }
 variable "port"            { default = 3306 }
