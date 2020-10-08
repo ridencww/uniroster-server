@@ -68,7 +68,7 @@ module "elastic_beanstalk" {
     subnet_ids        = module.network.private_subnet_ids
     ingress_app_cidr  = var.ingress_app_cidr
     ingress_elb_cidr  = var.ingress_elb_cidr
-    elb_subnet_ids    = module.network.private_subnet_ids
+    elb_subnet_ids    = module.network.public_subnet_ids
     db_hostname       = module.aurora_rds.endpoint
     db_username       = var.db_username
     db_password       = var.db_password

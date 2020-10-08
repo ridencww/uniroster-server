@@ -1,7 +1,7 @@
 variable "solution_stack_name"    { default = "64bit Amazon Linux 2018.03 v2.15.4 running Docker 19.03.6-ce" }
 variable "autoscaling_min_size"   { default = 1 }
 variable "autoscaling_max_size"   { default = 10 }
-variable "elb_scheme"             { default = "internal" }
+variable "elb_scheme"             { default = "public" }
 variable "app_port_protocol"      { default = "tcp" }
 variable "name"                   { }
 variable "app_name"               { }
