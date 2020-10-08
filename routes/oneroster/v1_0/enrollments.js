@@ -38,9 +38,11 @@ function queryEnrollment(req, res, next) {
         queryValues: [req.params.id],
         additionalWhereStmts: 'sourceId = ?'
     }).then((data) => {
-        res.json({
-            enrollment: buildEnrollment(data.results[0], data.hrefBase, data.fields.metaFields)
-        })
+        if (data) {
+            res.json({
+                enrollment: buildEnrollment(data.results[0], data.hrefBase, data.fields.metaFields)
+            })
+        }
     });
 };
 
@@ -48,7 +50,7 @@ function queryEnrollments(req, res, next) {
     db.getData(req, res, {
         table: table
     }).then((data) => {
-        buildEnrollmentsFromData(res, data);
+        if (data) buildEnrollmentsFromData(res, data);
     });
 };
 
@@ -58,7 +60,7 @@ function queryEnrollmentsBySchool(req, res, next) {
         queryValues: [req.params.sid, req.params.cid],
         additionalWhereStmts: `schoolSourcedId = ?${req.params.cid ? ' AND classSourcedId = ?' : ''}`
     }).then((data) => {
-        buildEnrollmentsFromData(res, data);
+        if (data) buildEnrollmentsFromData(res, data);
     });
 };
 

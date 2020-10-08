@@ -48,9 +48,11 @@ function queryAcademicSession(req, res, next, type) {
         queryValues: [req.params.id, type],
         additionalWhereStmts: `sourcedId = ?${type ? ' AND type = ?' : ''}`
     }).then((data) => {
-        res.json({
-            academicSession: buildAcademicSession(data.results[0], data.hrefBase, data.fields.metaFields)
-        });
+        if (data) {
+            res.json({
+                academicSession: buildAcademicSession(data.results[0], data.hrefBase, data.fields.metaFields)
+            });
+        }
     });
 };
 
@@ -60,13 +62,15 @@ function queryAcademicSessions(req, res, next, type) {
         queryValues: [type],
         additionalWhereStmts: type ? 'type = ?' : ''
     }).then((data) => {
-        const academicSessions = [];
-        data.results.forEach(function(row) {
-            academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({
-            academicSessions: academicSessions
-        });
+        if (data) {
+            const academicSessions = [];
+            data.results.forEach(function(row) {
+                academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
+            });
+            res.json({
+                academicSessions: academicSessions
+            });
+        }
     });
 };
 
@@ -79,11 +83,13 @@ function queryAcademicSessionsForSchool(req, res, next, type) {
         wherePrefix: 'a',
         additionalWhereStmts: `c.termSourcedId = a.sourcedId AND c.schoolSourcedId = ?${type ? ' AND type = ?' : ''}`
     }).then((data) => {
-        const academicSessions = [];
-        data.results.forEach(function(row) {
-          academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({academicSessions: academicSessions});
+        if (data) {
+            const academicSessions = [];
+            data.results.forEach(function(row) {
+            academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
+            });
+            res.json({academicSessions: academicSessions});
+        }
     });
 };
 

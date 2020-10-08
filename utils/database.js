@@ -49,6 +49,9 @@ const getData = function(req, res, sqlParams) {
             hrefBase: utils.getHrefBase(req),
             results: results
         }
+    }).catch((err) => {
+        utils.reportServerError(res, err);
+        return null;
     });
 }
 

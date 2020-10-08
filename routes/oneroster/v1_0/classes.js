@@ -64,9 +64,11 @@ function queryClass (req, res, next) {
         queryValues: [req.params.id],
         additionalWhereStmts: 'sourcedId = ?'
     }).then((data) => {
-        res.json({
-            class: buildClass(data.results[0], data.hrefBase, data.fields.metaFields)
-        });
+        if (data) {
+            res.json({
+                class: buildClass(data.results[0], data.hrefBase, data.fields.metaFields)
+            });
+        }
     });
 };
 
@@ -74,11 +76,13 @@ function queryClasses(req, res, next) {
     db.getData(req, res, {
         table: table
     }).then((data) => {
-        const classes = [];
-        data.results[0].rows.forEach(function(row) {
-            classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({classes: classes});
+        if (data) {
+            const classes = [];
+            data.results[0].rows.forEach(function(row) {
+                classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
+            });
+            res.json({classes: classes});
+        }
     });
 };
 
@@ -88,11 +92,13 @@ function queryClassesFromAnchor(req, res, next, anchorTableField) {
         queryValues: [req.params.id],
         additionalWhereStmts: `${anchorTableField} = ?`
     }).then((data) => {
-        const classes = [];
-        data.results.forEach(function(row) {
-            classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({classes: classes});
+        if (data) {
+            const classes = [];
+            data.results.forEach(function(row) {
+                classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
+            });
+            res.json({classes: classes});
+        }
     });
 };
 
@@ -113,11 +119,13 @@ function queryClassesFromUser(req, res, next, userType) {
         wherePrefix: 'c',
         additionalWhereStmts: `u.sourceId = ? ${userQualifier}`
     }).then((data) => {
-        const classes = [];
-        data.results.forEach(function(row) {
-            classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({classes: classes});
+        if (data) {
+            const classes = [];
+            data.results.forEach(function(row) {
+                classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
+            });
+            res.json({classes: classes});
+        }
     });
 };
 

@@ -59,6 +59,16 @@ function buildUser(row, hrefBase, metaFields) {
     return user;
 };
 
+function buildUsersFromData(res, data) {
+    if (data) {
+        const users = [];
+        data.results.forEach(function(row) {
+            users.push(buildUser(row, data.hrefBase, data.fields.metaFields));
+        });
+        res.json({users: users});
+    }
+};
+
 function queryUser(req, res, next, role) {
     db.getData(req, res, {
         table: table,
@@ -83,11 +93,7 @@ function queryUsers(req, res, next, role) {
         additionalWhereStmts: role ? 'role = ?' : '',
         allowButIgnoreThese: "demographics"
     }).then((data) => {
-        const users = [];
-        data.results.forEach(function(row) {
-            users.push(buildUser(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({users: users})
+        buildUsersFromData(res, data);
     });
 };
 
@@ -125,11 +131,7 @@ function queryUsersByClass(req, res, next, role) {
         additionalWhereStmts: `c.sourcedId = ? ${userQualifier}`,
         allowButIgnoreThese: "demographics"
     }).then((data) => {
-        const users = [];
-        data.results.forEach(function(row) {
-            users.push(buildUser(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({users: users});
+        buildUsersFromData(res, data);
     });
 };
 
@@ -151,11 +153,7 @@ var queryUsersBySchool = function(req, res, next, role) {
         additionalWhereStmts: `u.orgSourceIds LIKE ? ${userQualifier}`,
         allowButIgnoreThese: "demographics"
     }).then((data) => {
-        const users = [];
-        data.results.forEach(function(row) {
-            users.push(buildUser(row, data.hrefBase, data.fields.metaFields));
-        });
-        res.json({users: users});
+        buildUsersFromData(res, data);
     });
 };
 

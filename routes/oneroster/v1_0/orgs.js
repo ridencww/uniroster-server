@@ -48,9 +48,11 @@ function queryOrg(req, res, next, type) {
         queryValues: [req.params.id, type],
         additionalWhereStmts: `sourcedId = ?${type ? ' AND type = ?' : ''}`
     }).then((data) => {
-        res.json({
-            orgs: buildOrg(data.results[0], data.hrefBase, data.fields.metaFields)
-        });
+        if (data) {
+            res.json({
+                orgs: buildOrg(data.results[0], data.hrefBase, data.fields.metaFields)
+            });
+        }
     });
 };
 
@@ -60,11 +62,13 @@ function queryOrgs(req, res, next, type) {
         queryValues: [type],
         additionalWhereStmts: type ? 'type = ?' : ''
     }).then((data) => {
-        const orgs = [];
-        data.results.forEach(function(row) {
-            orgs.push(buildOrg(row, data.hrefBase, data.fields.metaFields));
-        })
-        res.json({orgs: orgs});
+        if (data) {
+            const orgs = [];
+            data.results.forEach(function(row) {
+                orgs.push(buildOrg(row, data.hrefBase, data.fields.metaFields));
+            })
+            res.json({orgs: orgs});
+        }
     });
 };
 
