@@ -1,172 +1,65 @@
-var app = require('../../../uniroster-server.js');
-var db = require('../../../lib/database.js');
-var express = require('express');
-var utils = require('../../../lib/onerosterUtils.js');
+const db = require('../../../utils/database');
+const router = require('express').Router();
+const table = 'enrollments';
 
-var router = express.Router();
-
-var buildEnrollment = function(row, hrefBase, metaFields) {
-  var enrollment = {};
-  enrollment.sourcedId = row.sourcedId;
-  enrollment.status = row.status ? row.status : "active";
-  enrollment.dateLastModified = row.dateLastModified;
-
-  var metadata = {};
-  metaFields.forEach(function(field) {
-    metadata[field.jsonColumn] = row[field.dbColumn];
-  });
-  if (metaFields.length > 0) {
-    enrollment.metadata = metadata;
-  }
-
-  enrollment.userSourcedId = row.userSourcedId;
-  enrollment.classSourcedId = row.classSourcedId;
-  enrollment.schoolSourcedId = row.schoolSourcedId;
-  enrollment.role = row.role;
-  enrollment.primary = row.primary;
-
-  return enrollment;
-};
-
-var queryEnrollment = function(req, res, next) {
-  db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'enrollments', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields);
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields, '', 'sourcedId = ?');
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql = select + 'FROM enrollments ';
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, [req.params.id], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        if (rows.length == 0) {
-          utils.reportNotFound(res);
-        } else {
-          var wrapper = {};
-          wrapper.enrollment = buildEnrollment(rows[0], hrefBase, fields.metaFields);
-          res.json(wrapper);
-        }
-      });
-    });
-  });
-};
-
-var queryEnrollments = function(req, res, next, type) {
-  db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'enrollments', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields);
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields);
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql = select + 'FROM enrollments ';
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        var wrapper = {};
-        wrapper.enrollments = [];
-        rows.forEach(function(row) {
-          wrapper.enrollments.push(buildEnrollment(row, hrefBase, fields.metaFields));
+function buildEnrollment(row, hrefBase, metaFields) {
+    const enrollment = {
+        sourcedId: row.sourcedId,
+        status: row.status ? row.status : "active",
+        dateLastModified: row.dateLastModified,
+        userSourcedId: row.userSourcedId,
+        classSourcedId: row.classSourcedId,
+        schoolSourcedId: row.schoolSourcedId,
+        role: row.role,
+        primary: row.primary
+    };
+  
+    if (metaFields.length > 0) {
+        enrollment.metadata = {}
+        metaFields.forEach(function(field) {
+            enrollment.metadata[field.jsonColumn] = row[field.dbColumn];
         });
-        res.json(wrapper);
-      });
-    });
-  });
+    }
+  
+    return enrollment;
 };
 
-var queryEnrollmentsBySchool = function(req, res, next, type) {
-  db.setup(req, res, function(connection, hrefBase, type) {
-    db.tableFields(connection, 'enrollments', function(fields) {
-      var select = utils.buildSelectStmt(req, res, fields);
-      if (select === null) {
-        connection.release();
-        return;
-      }
-
-      var whereStr = 'schoolSourcedId = ? ';
-      if (req.params.cid) {
-        whereStr += 'AND classSourcedId = ? ';
-      }
-
-      var where = utils.buildWhereStmt(req, res, fields, '', whereStr);
-      if (where === null) {
-        connection.release();
-        return;
-      }
-
-      var orderBy = utils.buildOrderByStmt(req, res, fields);
-      if (orderBy === null) {
-        connection.release();
-        return;
-      }
-
-      var sql = select + 'FROM enrollments ';
-      sql += where;
-      sql += orderBy;
-      sql += utils.buildLimitStmt(req);
-
-      connection.query(sql, [req.params.sid, req.params.cid], function(err, rows) {
-        connection.release();
-
-        if (err) {
-          utils.reportServerError(res, err);
-          return;
-        }
-
-        var wrapper = {};
-        wrapper.enrollments = [];
-        rows.forEach(function(row) {
-          wrapper.enrollments.push(buildEnrollment(row, hrefBase, fields.metaFields));
-        });
-        res.json(wrapper);
-      });
+function buildEnrollmentsFromData(res, data) {
+    const enrollments = [];
+    data.results.forEach(function(row) {
+        enrollments.push(buildEnrollment(row, data.hrefBase, data.fields.metaFields));
     });
-  });
+    res.json({enrollments: enrollments});
+};
+
+function queryEnrollment(req, res, next) {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id],
+        additionalWhereStmts: 'sourceId = ?'
+    }).then((data) => {
+        res.json({
+            enrollment: buildEnrollment(data.results[0], data.hrefBase, data.fields.metaFields)
+        })
+    });
+};
+
+function queryEnrollments(req, res, next) {
+    db.getData(req, res, {
+        table: table
+    }).then((data) => {
+        buildEnrollmentsFromData(res, data);
+    });
+};
+
+function queryEnrollmentsBySchool(req, res, next) {
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.sid, req.params.cid],
+        additionalWhereStmts: `schoolSourcedId = ?${req.params.cid ? ' AND classSourcedId = ?' : ''}`
+    }).then((data) => {
+        buildEnrollmentsFromData(res, data);
+    });
 };
 
 router.get('/enrollments', function(req, res, next) {
