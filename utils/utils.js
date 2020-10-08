@@ -15,7 +15,7 @@ module.exports = {
         res.json(wrapper);
     },
     reportServerError: function(res, err) {
-        console.trace(err);
+        console.log(err);
         var wrapper = {};
         wrapper.errors = {};
         wrapper.errors.codeMajor = 'FAILURE';

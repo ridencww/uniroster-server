@@ -23,7 +23,9 @@ const getData = function(req, res, sqlParams) {
         return tableFields(sqlParams.table);
     }).then((results) => {
         fields = results;
+
         const select = buildSelectStmt(req, res, fields, sqlParams);
+        if (select === null) return null;
 
         let from;
         if (sqlParams.fromStmt) {
@@ -37,8 +39,13 @@ const getData = function(req, res, sqlParams) {
         }
 
         const where = buildWhereStmt(req, res, fields, sqlParams);
+        if (where === null) return null;
+
         const orderBy = buildOrderByStmt(req, res, fields);
-        const limit = buildLimitStmt(req, sqlParams);
+        if (orderBy === null) return null;
+
+        const limit = buildLimitStmt(req, res, sqlParams);
+        if (limit === null) return null;
 
         const sql = `${select} ${from} ${where} ${orderBy} ${limit}`;
         console.log(sql);
@@ -90,12 +97,16 @@ const tableFields = function(table) {
     })
 }
 
-const buildLimitStmt = function(req, sqlParams) {
+const buildLimitStmt = function(req, res, sqlParams) {
     let limit = 'LIMIT ', offset = 'OFFSET ';
 
     if (sqlParams.limit) {
         limit += sqlParams.limit;
-    } else if (req.query.limit && !isNaN(Number(req.query.limit))) {
+    } else if (req.query.limit) {
+        if (isNaN(Number(req.query.limit))) {
+            utils.reportBadRequest(res, `'req.query.limit' is not a valid limit`);
+            return null;
+        }
         limit += Number(req.query.limit);
     } else {
         // IMS Specification: Default limit MUST be 100
@@ -104,7 +115,11 @@ const buildLimitStmt = function(req, sqlParams) {
 
     if (sqlParams.offset) {
         offset += sqlParams.offset;
-    } else if (req.query.offset && !isNaN(Number(req.query.offset))) {
+    } else if (req.query.offset) {
+        if (isNaN(Number(req.query.offset))) {
+            utils.reportBadRequest(res, `'req.query.offset' is not a valid offset`);
+            return null;
+        }
         offset += Number(req.query.offset);
     } else {
         offset = "";
