@@ -5,20 +5,24 @@ const config = require('../config');
 const tokenizer = require('./tokenizer');
 const utils = require('./utils');
 
-let pool;
-mysql.createPool({
+const poolPromise = mysql.createPool({
     connectionLimit: config.db.connectionLimit,
     host: config.db.host,
     user: config.db.user,
     password: config.db.password
-}).then((p) => {pool = p;});
+});
+
+let pool;
+poolPromise.then((p) => {
+    pool = p;
+})
 
 const getData = function(req, res, sqlParams) {
     const datasetSql = "SELECT dataset FROM clients where client_id = (SELECT client_id FROM tokens WHERE access_token = ?)";
     const shaToken = crypto.createHash("sha256").update(req.headers.authorization.split(' ')[1]).digest("hex");
     let dataset, fields;
 
-    return queryDatabase(config.db.authDatabase, datasetSql, [shaToken]).then((results) => {
+    return queryDatabase(config.auth.database, datasetSql, [shaToken]).then((results) => {
         dataset = results[0].dataset;
         return tableFields(sqlParams.table);
     }).then((results) => {
@@ -48,7 +52,6 @@ const getData = function(req, res, sqlParams) {
         if (limit === null) return null;
 
         const sql = `${select} ${from} ${where} ${orderBy} ${limit}`;
-        console.log(sql);
         return queryDatabase(dataset, sql, sqlParams.queryValues);
     }).then((results) => {
         return {
@@ -64,9 +67,12 @@ const getData = function(req, res, sqlParams) {
 
 const queryDatabase = function(database, sql, values) {
     let connection;
-    return pool.getConnection().then((conn) => {
+    return poolPromise.then((p) => {
+        return p.getConnection();
+    }).then((conn) => {
         connection = conn;
         conn.changeUser({database: database});
+        console.log(sql);
         return conn.query(sql, values);
     }).then((results) => {
         connection.release();
@@ -76,7 +82,9 @@ const queryDatabase = function(database, sql, values) {
 
 const tableFields = function(table) {
     const sql = "SELECT column_name FROM information_schema.columns WHERE table_name = ?"
-    return pool.query(sql, [table]).then((results) => {
+    return poolPromise.then((p) => {
+        return p.query(sql, [table]);
+    }).then((results) => {
         const all = [];
         const metaFields = [];
         const requested = [];

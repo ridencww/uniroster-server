@@ -4,25 +4,37 @@ module.exports = {
         return `${req.protocol}://${req.headers.host}${req.baseUrl}`;
     },
     reportBadRequest: function(res, err) {
-        var wrapper = {};
-        wrapper.errors = {};
-        wrapper.errors.codeMajor = 'FAILURE';
-        wrapper.errors.severity = 'ERROR';
-        wrapper.errors.codeMinor = 'INVALID DATA';
-        wrapper.errors.description = 'Bad request ‐ the request was invalid and cannot be served.';
-        if (err) wrapper.errors.description += ' ' + err;
-        res.statusCode = 400;
-        res.json(wrapper);
+        res.json({
+            errors: {
+                codeMajor: "FAILURE",
+                severity: "ERROR",
+                codeMinor: "INVALID DATA",
+                description: err || "Bad Request"
+            },
+            statusCode: 400
+        });
     },
     reportServerError: function(res, err) {
         console.log(err);
-        var wrapper = {};
-        wrapper.errors = {};
-        wrapper.errors.codeMajor = 'FAILURE';
-        wrapper.errors.severity = 'ERROR';
-        wrapper.errors.codeMinor = 'UNKNOWN OBJECT';
-        wrapper.errors.description = 'Internal server error.';
-        res.statusCode = err ? err.status | 500 : 500;
-        res.json(wrapper);
+        res.json({
+            errors: {
+                codeMajor: "FAILURE",
+                severity: "ERROR",
+                codeMinor: "UNKNOWN OBJECT",
+                description: "Internal server error"
+            },
+            statusCode: err ? err.status | 500 : 500
+        });
+    },
+    reportUnauthorized: function(res) {
+        res.json({
+            errors: {
+                codeMajor: "FAILURE",
+                severity: "ERROR",
+                codeMinor: "UNAUTHORIZED",
+                description: "Unauthorized - the request requires authorization"
+            },
+            statusCode: 401
+        });
     }
 }
