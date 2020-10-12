@@ -19,6 +19,7 @@ auth.database = process.env.AUTH_DATABASE || 'accounts';
 auth.enableClientRegistration = getBool("ENABLE_CLIENT_REGISTRATION");
 auth.enableClientRemoval = getBool("ENABLE_CLIENT_REMOVAL");
 auth.enableInitialNoAuthRegistration = getBool("ENABLE_INITIAL_NO_AUTH_REGISTRATION", false);
+auth.enableSettingsEndpoint = getBool("ENABLE_SETTINGS_ENDPOINT");
 auth.defaultClientId = process.env.DEFAULT_CLIENT_ID || 'default-client';
 auth.defaultClientSecret = process.env.DEFAULT_CLIENT_SECRET || 'default-secret';
 auth.defaultDataset = process.env.DEFAULT_DATASET || 'sample_or10';

@@ -1,16 +1,18 @@
 const express = require('express');
 const config = require('./config');
 const bodyParser = require('body-parser')
-const oauthServer = require('./oauth/server.js')
+const oauthServer = require('./oauth/server')
 
 const app = express()
 const port = 3030
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use('/oauth', require('./routes/auth.js'))
+app.use('/oauth', require('./routes/auth'))
 
 app.use('/learningdata', oauthServer.authenticate(), require('./routes/routes'));
+
+app.use('/settings', require('./routes/settings'));
 
 if (config.httpActive == true) {
     const http = require('http');
