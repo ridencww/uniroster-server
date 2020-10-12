@@ -1,0 +1,45 @@
+name: Release
+on:
+  push:
+    branches:
+      - master
+jobs:
+  bump-version:
+    name: Bump Version on master
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - uses: kaangokdemir/github-version-bumper@0.5.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: scottbrenner/generate-changelog-action@1.0.1
+        id: changelog
+        env:
+          REPO: ${{ github.repository }}
+      - uses: martinbeentjes/npm-get-version-action@v1.1.0
+        id: package-version
+      - run: npm install --production
+      - uses: montudor/action-zip@v0.1.0
+        with:
+          args: zip -qq -r uniroster-server-${{ steps.package-version.outputs.current-version}}.zip node_modules oauth routes sql utils config.js Dockerfile Dockerrun.aws.json index.js package.json
+      - uses: ncipollo/release-action@v1
+        with:
+          artifact: uniroster-server-${{ steps.package-version.outputs.current-version}}.zip
+          tag: ${{ steps.package-version.outputs.current-version}}
+          name: Test Action Release ${{ steps.package-version.outputs.current-version}}
+          body: ${{ steps.Changelog.outputs.changelog }}
+          commit: master
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Deploy to QA
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          sudo apt-get update && sudo apt-get -y install awscli
+          aws s3 cp uniroster-server-${{ steps.package-version.outputs.current-version}}.zip s3://${{ secrets.S3_BUCKET }}/
+          aws elasticbeanstalk --region us-east-1 create-application-version --application-name uniroster-app --version-label ${{ steps.package-version.outputs.current-version}} --source-bundle S3Bucket=cli-uniroster-build-artifact-bucket,S3Key=uniroster-server-${{ steps.package-version.outputs.current-version}}.zip
+          aws elasticbeanstalk --region us-east-1 update-environment --application-name uniroster-app --environment-name qa-uniroster --version-label ${{ steps.package-version.outputs.current-version}}
