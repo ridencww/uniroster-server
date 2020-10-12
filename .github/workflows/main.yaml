@@ -3,6 +3,15 @@ on:
   push:
     branches:
       - master
+    paths-ignore:
+      - certs/**
+      - terraform/**
+      - sql/**
+      - .gitignore
+      - docker-compose.yaml
+      - Dockerfile-dev
+      - LICENSE
+      - README.md
 jobs:
   bump-version:
     name: Bump Version on master
