@@ -18,13 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v1
         with:
           node-version: 12.x
       - uses: kaangokdemir/github-version-bumper@0.5.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: scottbrenner/generate-changelog-action@1.0.1
+      - uses: Bullrich/generate-release-changelog@2.0.1
         id: changelog
         env:
           REPO: ${{ github.repository }}
