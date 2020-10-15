@@ -15,3 +15,4 @@ variable "elb_subnet_ids"         { }
 variable "db_hostname"            { }
 variable "db_username"            { }
 variable "db_password"            { }
+variable "ssl_certificate_id"     { }

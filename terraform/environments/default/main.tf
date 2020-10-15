@@ -51,25 +51,27 @@ module "aurora_rds" {
 
 ####### ELASTIC BEANSTALK #######
 
-variable "app_name"          { }
-variable "app_port"          { }
-variable "app_instance_type" { }
-variable "ingress_app_cidr"  { }
-variable "ingress_elb_cidr"  { }
+variable "app_name"           { }
+variable "app_port"           { }
+variable "app_instance_type"  { }
+variable "ingress_app_cidr"   { }
+variable "ingress_elb_cidr"   { }
+variable "ssl_certificate_id" { }
 
 module "elastic_beanstalk" {
     source = "../../modules/elastic_beanstalk"
 
-    name              = "${var.environment}-${var.prefix}"
-    app_name          = var.app_name
-    app_port          = var.app_port
-    app_instance_type = var.app_instance_type
-    vpc_id            = module.network.vpc_id
-    subnet_ids        = module.network.private_subnet_ids
-    ingress_app_cidr  = var.ingress_app_cidr
-    ingress_elb_cidr  = var.ingress_elb_cidr
-    elb_subnet_ids    = module.network.public_subnet_ids
-    db_hostname       = module.aurora_rds.endpoint
-    db_username       = var.db_username
-    db_password       = var.db_password
+    name               = "${var.environment}-${var.prefix}"
+    app_name           = var.app_name
+    app_port           = var.app_port
+    app_instance_type  = var.app_instance_type
+    vpc_id             = module.network.vpc_id
+    subnet_ids         = module.network.private_subnet_ids
+    ingress_app_cidr   = var.ingress_app_cidr
+    ingress_elb_cidr   = var.ingress_elb_cidr
+    elb_subnet_ids     = module.network.public_subnet_ids
+    db_hostname        = module.aurora_rds.endpoint
+    db_username        = var.db_username
+    db_password        = var.db_password
+    ssl_certificate_id = var.ssl_certificate_id
 }

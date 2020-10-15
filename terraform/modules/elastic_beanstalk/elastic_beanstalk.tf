@@ -58,6 +58,31 @@ resource "aws_elastic_beanstalk_environment" "app" {
     value     = aws_security_group.eb_elb.id
   }
   setting {
+    namespace = "aws:elb:listener"
+    name      = "ListenerEnabled"
+    value     = "false"
+  }
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "ListenerProtocol"
+    value     = "https"
+  }
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "InstancePort"
+    value     = 80
+  }
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "InstanceProtocol"
+    value     = "http"
+  }
+  setting {
+    namespace = "aws:elb:listener:443"
+    name      = "SSLCertificateId"
+    value     = var.ssl_certificate_id
+  }
+  setting {
     namespace = "aws:elasticbeanstalk:cloudwatch:logs"
     name      = "StreamLogs"
     value     = "true"
