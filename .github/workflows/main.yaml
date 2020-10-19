@@ -62,12 +62,12 @@ jobs:
             {{ env.CHANGELOG }}
       - name: Failure Build Message
         uses: aibexhq/slack-rich-notify@v2.0.1
-        if: ${{ failure() }}
+        if: failure()
         with:
           token: ${{ secrets.SLACK_TOKEN }}
           channel: ${{ secrets.SLACK_BUILD_CHANNEL }}
           message: |
-            *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> has been deployed to https://uniroster.qa-cli.com*
+            *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> build FAILURE*
             {{ env.CHANGELOG }}
       - name: Deploy to QA
         id: deploy
@@ -89,12 +89,9 @@ jobs:
           message: |
             *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> has been deployed to https://uniroster.qa-cli.com*
             {{ env.CHANGELOG }}
-      - name: Outcome Test
-        if: ${{ always() }}
-        run: echo ${{ toJson(steps.deploy) }}
       - name: Failure Slack Message
         uses: aibexhq/slack-rich-notify@v2.0.1
-        if: ${{ steps.deploy.outcome == 'failure' }}
+        if: steps.deploy.outcome == 'failure'
         with:
           token: ${{ secrets.SLACK_TOKEN }}
           channel: ${{ secrets.SLACK_DEPLOY_CHANNEL }}
