@@ -13,7 +13,7 @@ on:
       - LICENSE
       - README.md
 jobs:
-  bump-version:
+  release:
     name: Bump Version on master
     runs-on: ubuntu-latest
     steps:
@@ -26,17 +26,25 @@ jobs:
       - uses: kaangokdemir/github-version-bumper@0.5.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: Bullrich/generate-release-changelog@2.0.1
+      - name: Generate Release Changelog
+        uses: Bullrich/generate-release-changelog@2.0.1
         id: changelog
         env:
           REPO: ${{ github.repository }}
+      - name: Generate Slack Changelog
+        run: |
+          echo 'CHANGELOG<<EOF' >> $GITHUB_ENV
+          git log --color=never --pretty='tformat:%xe2%x80%xa2 `%h` %s (%an)' ${{github.event.before}}..HEAD >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       - uses: martinbeentjes/npm-get-version-action@v1.1.0
         id: package-version
       - run: npm install --production
-      - uses: montudor/action-zip@v0.1.0
+      - name: Create Zip Artifact
+        uses: montudor/action-zip@v0.1.0
         with:
           args: zip -qq -r uniroster-server-${{ steps.package-version.outputs.current-version}}.zip node_modules oauth routes sql utils config.js Dockerfile Dockerrun.aws.json index.js package.json
-      - uses: ncipollo/release-action@v1
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
           artifacts: uniroster-server-${{ steps.package-version.outputs.current-version}}.zip
           tag: ${{ steps.package-version.outputs.current-version}}
@@ -44,7 +52,25 @@ jobs:
           body: ${{ steps.Changelog.outputs.changelog }}
           commit: master
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Success Build Message
+        uses: aibexhq/slack-rich-notify@v2.0.1
+        with:
+          token: ${{ secrets.SLACK_TOKEN }}
+          channel: ${{ secrets.SLACK_BUILD_CHANNEL }}
+          message: |
+            *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> build was successful*
+            {{ env.CHANGELOG }}
+      - name: Failure Build Message
+        uses: aibexhq/slack-rich-notify@v2.0.1
+        if: ${{ failure() }}
+        with:
+          token: ${{ secrets.SLACK_TOKEN }}
+          channel: ${{ secrets.SLACK_BUILD_CHANNEL }}
+          message: |
+            *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> has been deployed to https://uniroster.qa-cli.com*
+            {{ env.CHANGELOG }}
       - name: Deploy to QA
+        id: deploy
         shell: bash
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -52,5 +78,23 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get -y install awscli
           aws s3 cp uniroster-server-${{ steps.package-version.outputs.current-version}}.zip s3://${{ secrets.S3_BUCKET }}/
-          aws elasticbeanstalk --region us-east-1 create-application-version --application-name uniroster-app --version-label ${{ steps.package-version.outputs.current-version}} --source-bundle S3Bucket=cli-uniroster-build-artifact-bucket,S3Key=uniroster-server-${{ steps.package-version.outputs.current-version}}.zip
-          aws elasticbeanstalk --region us-east-1 update-environment --application-name uniroster-app --environment-name qa-uniroster --version-label ${{ steps.package-version.outputs.current-version}}
+          aws elasticbeanstalk --region us-east-1 create-application-version --application-name ${{ secrets.EB_APP_NAME }} --version-label ${{ steps.package-version.outputs.current-version}} --source-bundle S3Bucket=${{ secrets.S3_BUCKET }},S3Key=uniroster-server-${{ steps.package-version.outputs.current-version}}.zip
+          aws elasticbeanstalk --region us-east-1 update-environment --application-name ${{ secrets.EB_APP_NAME }} --environment-name ${{ secrets.EB_ENV_NAME }} --version-label ${{ steps.package-version.outputs.current-version}}
+          aws elasticbeanstalk wait environment-updated --environment-names ${{ secrets.EB_ENV_NAME }}
+      - name: Success Slack Message
+        uses: aibexhq/slack-rich-notify@v2.0.1
+        with:
+          token: ${{ secrets.SLACK_TOKEN }}
+          channel: ${{ secrets.SLACK_DEPLOY_CHANNEL }}
+          message: |
+            *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> has been deployed to https://uniroster.qa-cli.com*
+            {{ env.CHANGELOG }}
+      - name: Failure Slack Message
+        uses: aibexhq/slack-rich-notify@v2.0.1
+        if: ${{ steps.deploy.outcome == 'failure' }}
+        with:
+          token: ${{ secrets.SLACK_TOKEN }}
+          channel: ${{ secrets.SLACK_DEPLOY_CHANNEL }}
+          message: |
+            *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> deployment FAILURE*
+            {{ env.CHANGELOG }}
