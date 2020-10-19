@@ -90,6 +90,7 @@ jobs:
             *<https://github.com/${{ github.event.repository.full_name }}/releases/tag/v${{ steps.package-version.outputs.current-version }}|Uniroster ${{ steps.package-version.outputs.current-version }}> has been deployed to https://uniroster.qa-cli.com*
             {{ env.CHANGELOG }}
       - run: echo ${{ steps.deploy.outcome }}
+        if: always()
       - name: Failure Slack Message
         uses: aibexhq/slack-rich-notify@v2.0.1
         if: contains(steps.deploy.outcome, 'failure')
