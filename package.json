@@ -1,6 +1,6 @@
 {
     "name": "uniroster-server",
-    "version": "1.0.17",
+    "version": "1.0.18",
     "description": "Rostering server supporting multiple protocols (e.g., OneRoster, Ed-Fi, etc.)",
     "main": "index.js",
     "scripts": {
