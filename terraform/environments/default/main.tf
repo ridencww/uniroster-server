@@ -1,6 +1,6 @@
 variable "aws_region"  { default = "us-east-1" }
+variable "prefix"      { default = "uniroster" }
 variable "environment" { }
-variable "prefix"      { }
 
 terraform {
   required_version = ">= 0.12"
@@ -12,8 +12,11 @@ provider aws {
 
 ####### NETWORK #######
 
+# If aws_region is set via tfvars to something other than us-east-1 this will need
+# to be set to matching availability zones
+variable "azs"                  { default = "us-east-1a,us-east-1b,us-east-1c" } 
+
 variable "vpc_cidr"             { }
-variable "azs"                  { }
 variable "public_subnets"       { }
 variable "private_subnets"      { }
 variable "transit_gateway_cidr" { }
@@ -33,9 +36,9 @@ module "network" {
 
 ####### AURORA #######
 
-variable "ingress_cidr" { }
-variable "db_username"  { }
+variable "db_username"  { default = "uniroster" }
 variable "db_password"  { }
+variable "ingress_cidr" { }
 
 module "aurora_rds" {
     source = "../../modules/aurora_rds"
@@ -51,9 +54,9 @@ module "aurora_rds" {
 
 ####### ELASTIC BEANSTALK #######
 
-variable "app_name"           { }
-variable "app_port"           { }
-variable "app_instance_type"  { }
+variable "app_name"           { default = "uniroster-app" }  # Keep this default in sync with the default in terraform/core/core.tf
+variable "app_port"           { default = 80 }
+variable "app_instance_type"  { default = "t2.micro" }
 variable "ingress_app_cidr"   { }
 variable "ingress_elb_cidr"   { }
 variable "ssl_certificate_id" { }
