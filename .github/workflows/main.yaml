@@ -80,7 +80,7 @@ jobs:
           aws s3 cp uniroster-server-${{ steps.package-version.outputs.current-version}}.zip s3://${{ secrets.S3_BUCKET }}/
           aws elasticbeanstalk --region us-east-1 create-application-version --application-name ${{ secrets.EB_APP_NAME }} --version-label ${{ steps.package-version.outputs.current-version}} --source-bundle S3Bucket=${{ secrets.S3_BUCKET }},S3Key=uniroster-server-${{ steps.package-version.outputs.current-version}}.zip
           aws elasticbeanstalk --region us-east-1 update-environment --application-name ${{ secrets.EB_APP_NAME }} --environment-name ${{ secrets.EB_ENV_NAME }} --version-label ${{ steps.package-version.outputs.current-version}}
-          aws elasticbeanstalk wait environment-updated --environment-names ${{ secrets.EB_ENV_NAME }}
+          aws elasticbeanstalk --region us-east-1 wait environment-updated --environment-names ${{ secrets.EB_ENV_NAME }}
       - name: Success Slack Message
         uses: aibexhq/slack-rich-notify@v2.0.1
         with:
