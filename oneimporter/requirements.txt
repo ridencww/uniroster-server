@@ -1,0 +1,39 @@
+-i https://pypi.org/simple
+appdirs==1.4.4
+astroid==2.4.2; python_version >= '3.5'
+attrs==20.2.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+certifi==2020.6.20
+chardet==3.0.4
+coverage==5.3; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
+distlib==0.3.1
+filelock==3.0.12
+hvac==0.10.5
+idna==2.10; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+iniconfig==1.0.1
+isort==5.6.3; python_version >= '3.6' and python_version < '4.0'
+lazy-object-proxy==1.4.3; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+mccabe==0.6.1
+memory-profiler==0.57.0
+mysql-connector-python==8.0.21
+packaging==20.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pipenv==2020.8.13
+pluggy==0.13.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+protobuf==3.13.0
+psutil==5.7.2; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
+py==1.9.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pyasn1-modules==0.2.8
+pyasn1==0.4.8
+pylint==2.6.0
+pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pytest-cov==2.10.1
+pytest-dotenv==0.5.2
+pytest==6.1.1
+python-dotenv==0.14.0
+python-ldap==3.3.1
+requests==2.24.0
+six==1.15.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+toml==0.10.1
+urllib3==1.25.10
+virtualenv-clone==0.5.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+virtualenv==20.0.34; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+wrapt==1.12.1

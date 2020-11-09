@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+    oneimporter:
+        mem_limit: 256m
+        mem_reservation: 128m
+        image: 732004662672.dkr.ecr.us-east-1.amazonaws.com/roster/oneimporter:latest
+        env_file: .env
+        logging:
+            driver: splunk
+            options:
+              splunk-format: raw
+              splunk-index: qa_migration
+              splunk-insecureskipverify: "true"
+              splunk-source: oneimporter
+              splunk-sourcetype: oneimporter_v1
+              splunk-token: b9511b5b-ab0b-49e5-9170-b3df68880472
+              splunk-url: https://splunkforwarder.qa-cli.com:8088
+              tag: '{{.Name}}/{{.ID}}'

@@ -1,0 +1,27 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+black = "*"
+pyinstrument = "*"
+
+[packages]
+hvac = "*"
+python-ldap = "*"
+mysql-connector-python = "*"
+requests = "*"
+urllib3 = "*"
+pylint = "*"
+pytest = "*"
+pytest-cov = "*"
+pipenv = "*"
+memory-profiler = "*"
+pytest-dotenv = "*"
+
+[requires]
+python_version = "3.8"
+
+[pipenv]
+allow_prereleases = true

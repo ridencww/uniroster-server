@@ -1,0 +1,7 @@
+{
+    "Name": "Run_OneImporter_Daily",
+    "State": "ENABLED",
+    "Description": "run a OneImporter ECS task on a schedule",
+    "ScheduleExpression": "cron(00 4 ? * MON-FRI *)",
+    "EventBusName": "default"
+}

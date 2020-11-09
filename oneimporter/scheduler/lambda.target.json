@@ -1,0 +1,12 @@
+{
+  "Rule": "Run_OneImporter_Daily",
+  "EventBusName": "default",
+  "Targets": [
+    {
+      "Id": "oneimporter",
+      "Arn": "arn:aws:lambda:us-east-1:560112230788:function:launchecs:Production",
+      "Input": "{ \"ecs_task_def\": \"oneimporter\", \"region\": \"us-east-1\", \"count\": 1}"
+    }
+  ]
+}
+
