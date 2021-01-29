@@ -132,4 +132,14 @@ resource "aws_elastic_beanstalk_environment" "app" {
     name      = "DB_PASSWORD"
     value     = var.db_password
   }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEW_RELIC_APP_NAME"
+    value     = var.new_relic_app_name
+  }
+  setting {
+    namespace = "aws:elasticbeanstalk:application:environment"
+    name      = "NEW_RELIC_LICENSE_KEY"
+    value     = var.new_relic_license_key
+  }
 }
