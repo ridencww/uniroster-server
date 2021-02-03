@@ -1,5 +1,6 @@
 const db = require('../../../utils/database');
 const router = require('express').Router();
+const utils = require('../../../utils/utils');
 const table = 'users';
 
 const demographicsFromStmt = function(select, fields) {
@@ -79,7 +80,11 @@ function queryUser(req, res, next, role) {
         additionalWhereStmts: `sourcedId = ?${role ? ' AND role = ?' : ''}`, 
         allowButIgnoreThese: "demographics"
     }).then((data) => {
-        res.json({user: buildUser(data.results[0], data.hrefBase, data.fields.metaFields)})
+        if (data.results.length === 0) {
+            utils.reportBadRequest(res, 'User not found');
+        } else {
+            res.json({user: buildUser(data.results[0], data.hrefBase, data.fields.metaFields)});
+        }
     });
 };
 
