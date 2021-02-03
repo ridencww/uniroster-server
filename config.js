@@ -16,6 +16,7 @@ db.connectionLimit = getInt("DB_CONNECTION_LIMIT", 10);
 
 const auth = {};
 auth.database = process.env.AUTH_DATABASE || 'accounts';
+auth.accessTokenLifetime = getInt(process.env.ACCESS_TOKEN_LIFETIME, 60 * 60 * 24); // default 1 day
 auth.enableClientRegistration = getBool("ENABLE_CLIENT_REGISTRATION");
 auth.enableClientRemoval = getBool("ENABLE_CLIENT_REMOVAL");
 auth.enableInitialNoAuthRegistration = getBool("ENABLE_INITIAL_NO_AUTH_REGISTRATION", false);
