@@ -23,7 +23,7 @@ function buildOrg(row, hrefBase, metaFields) {
     if (row.parentSourcedId) {
         org.parent = {
             href: `${hrefBase}/orgs/${row.parentSourcedId}`,
-            sourceId: row.parentSourcedId,
+            sourcedId: row.parentSourcedId,
             type: 'org'
         }
     }
@@ -33,7 +33,7 @@ function buildOrg(row, hrefBase, metaFields) {
         row.childSourcedIds.toString().split(",").forEach(function(sid) {
             org.children.push({
                 href: `${hrefBase}/orgs/${sid}`,
-                sourceId: sid,
+                sourcedId: sid,
                 type: 'org'
             });
         });

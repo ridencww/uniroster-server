@@ -36,7 +36,7 @@ function queryEnrollment(req, res, next) {
     db.getData(req, res, {
         table: table,
         queryValues: [req.params.id],
-        additionalWhereStmts: 'sourceId = ?'
+        additionalWhereStmts: 'sourcedId = ?'
     }).then((data) => {
         if (data) {
             res.json({

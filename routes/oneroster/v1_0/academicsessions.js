@@ -33,7 +33,7 @@ function buildAcademicSession(row, hrefBase, metaFields) {
         row.childSourcedIds.toString().split(",").forEach(function(sid) {
             academicSession.children.push({
                 href: `${hrefBase}/academicSessions/${sid}`,
-                sourceId: sid,
+                sourcedId: sid,
                 type: 'academicSession'
             });
         });
