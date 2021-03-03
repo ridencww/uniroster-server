@@ -3,6 +3,8 @@ const router = require('express').Router();
 const table = 'enrollments';
 
 function buildEnrollment(row, hrefBase, metaFields) {
+    if (typeof row == 'undefined') return;
+
     const enrollment = {
         sourcedId: row.sourcedId,
         status: row.status ? row.status : "active",
