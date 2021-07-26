@@ -78,7 +78,7 @@ function queryClasses(req, res, next) {
     }).then((data) => {
         if (data) {
             const classes = [];
-            data.results[0].rows.forEach(function(row) {
+            data.results.rows.forEach(function(row) {
                 classes.push(buildClass(row, data.hrefBase, data.fields.metaFields));
             });
             res.json({classes: classes});
