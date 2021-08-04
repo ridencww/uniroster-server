@@ -64,7 +64,9 @@ function queryClass (req, res, next) {
         queryValues: [req.params.id],
         additionalWhereStmts: 'sourcedId = ?'
     }).then((data) => {
-        if (data) {
+        if (data.results.length === 0) {
+            utils.reportNotFound(res, 'Class not found');
+        } else {
             res.json({
                 class: buildClass(data.results[0], data.hrefBase, data.fields.metaFields)
             });

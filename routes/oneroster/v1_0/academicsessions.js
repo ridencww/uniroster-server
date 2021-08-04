@@ -48,7 +48,9 @@ function queryAcademicSession(req, res, next, type) {
         queryValues: [req.params.id, type],
         additionalWhereStmts: `sourcedId = ?${type ? ' AND type = ?' : ''}`
     }).then((data) => {
-        if (data) {
+        if (data.results.length === 0) {
+            utils.reportNotFound(res, 'Academic session not found');
+        } else {
             res.json({
                 academicSession: buildAcademicSession(data.results[0], data.hrefBase, data.fields.metaFields)
             });

@@ -81,7 +81,7 @@ function queryUser(req, res, next, role) {
         allowButIgnoreThese: "demographics"
     }).then((data) => {
         if (data.results.length === 0) {
-            utils.reportBadRequest(res, 'User not found');
+            utils.reportNotFound(res, 'User not found');
         } else {
             res.json({user: buildUser(data.results[0], data.hrefBase, data.fields.metaFields)});
         }

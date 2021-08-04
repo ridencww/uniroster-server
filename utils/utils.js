@@ -3,6 +3,12 @@ module.exports = {
     getHrefBase: function(req) {
         return `${req.protocol}://${req.headers.host}${req.baseUrl}`;
     },
+    reportNotFound: function(res, err) {
+        res.status(404);
+        res.json({
+            error: err || "Resource Not Found"
+        });
+    },
     reportBadRequest: function(res, err) {
         res.status(400);
         res.json({

@@ -49,7 +49,7 @@ function clientCheck(req, res, next) {
     db.queryDatabase(config.auth.database, sql, [req.body.client_id]).then((result) => {
         if (result[0].count === 0) {
             if (shouldExist) {
-                utils.reportBadRequest(res, `'${req.body.client_id}' does not exist`);
+                utils.reportNotFound(res, `'${req.body.client_id}' does not exist`);
             } else {
                 next();
             }

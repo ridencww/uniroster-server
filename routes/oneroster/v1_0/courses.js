@@ -51,7 +51,9 @@ function queryCourse(req, res, next) {
         queryValues: [req.params.id],
         additionalWhereStmts: 'sourcedId = ?'
     }).then((data) => {
-        if (data) {
+        if (data.results.length === 0) {
+            utils.reportNotFound(res, 'Course not found');
+        } else {
             res.json({
                 course: buildCourse(data.results[0], data.hrefBase, data.fields.metaFields)
             });

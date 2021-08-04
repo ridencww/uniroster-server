@@ -40,7 +40,9 @@ function queryEnrollment(req, res, next) {
         queryValues: [req.params.id],
         additionalWhereStmts: 'sourcedId = ?'
     }).then((data) => {
-        if (data) {
+        if (data.results.length === 0) {
+            utils.reportNotFound(res, 'Enrollment not found');
+        } else {
             res.json({
                 enrollment: buildEnrollment(data.results[0], data.hrefBase, data.fields.metaFields)
             })
