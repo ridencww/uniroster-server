@@ -1,4 +1,8 @@
+"use strict";
+
 const crypto = require('crypto');
+const { performance } = require('perf_hooks');
+
 const mysql = require('promise-mysql');
 
 const config = require('../config');
@@ -9,12 +13,25 @@ const poolPromise = mysql.createPool({
     connectionLimit: config.db.connectionLimit,
     host: config.db.host,
     user: config.db.user,
-    password: config.db.password
+    password: config.db.password,
 });
 
 let pool;
 poolPromise.then((p) => {
     pool = p;
+
+    pool.on('acquire', function (connection) {
+        console.log('Connection %d acquired', connection.threadId);
+    });
+
+    pool.on('enqueue', function () {
+        console.log('Waiting for available connection slot');
+    });
+
+    pool.on('release', function (connection) {
+        console.log('Connection %d released', connection.threadId);
+    });
+
 })
 
 const getData = function(req, res, sqlParams) {
@@ -69,11 +86,19 @@ const queryDatabase = function(database, sql, values) {
     let connection;
     return poolPromise.then((p) => {
         return p.getConnection();
-    }).then((conn) => {
+    }).then(async (conn) => {
         connection = conn;
         conn.changeUser({database: database});
-        console.log(sql);
-        return conn.query(sql, values);
+
+        console.log(conn.connection.threadId, sql);
+        const start = performance.now();
+
+        const results = await conn.query(sql, values);
+
+        const end = performance.now();
+        console.log(conn.connection.threadId, (end - start), 'ms');
+
+        return results;
     }).then((results) => {
         connection.release();
         return results;
