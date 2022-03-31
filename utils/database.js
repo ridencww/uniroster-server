@@ -90,13 +90,16 @@ const queryDatabase = function(database, sql, values) {
         connection = conn;
         conn.changeUser({database: database});
 
-        console.log(conn.connection.threadId, sql);
         const start = performance.now();
-
         const results = await conn.query(sql, values);
-
         const end = performance.now();
-        console.log(conn.connection.threadId, (end - start), 'ms');
+
+        console.log(
+            '[%d ms] %d %s',
+            (end - start).toFixed(3),
+            conn.connection.threadId,
+            sql,
+        );
 
         return results;
     }).then((results) => {
