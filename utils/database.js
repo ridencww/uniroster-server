@@ -41,7 +41,7 @@ const getData = function(req, res, sqlParams) {
 
     return queryDatabase(config.auth.database, datasetSql, [shaToken]).then((results) => {
         dataset = results[0].dataset;
-        return tableFields(sqlParams.table);
+        return tableFields(sqlParams.table, dataset);
     }).then((results) => {
         fields = results;
 
@@ -83,12 +83,13 @@ const getData = function(req, res, sqlParams) {
 }
 
 const queryDatabase = function(database, sql, values) {
+    console.trace('queryDatabase', { database, sql, values });
     let connection;
     return poolPromise.then((p) => {
         return p.getConnection();
     }).then(async (conn) => {
         connection = conn;
-        conn.changeUser({database: database});
+        conn.changeUser({ database });
 
         const start = performance.now();
         const results = await conn.query(sql, values);
@@ -108,10 +109,21 @@ const queryDatabase = function(database, sql, values) {
     });
 }
 
-const tableFields = function(table) {
-    const sql = "SELECT column_name FROM information_schema.columns WHERE table_name = ?"
-    return poolPromise.then((p) => {
-        return p.query(sql, [table]);
+const tableFields = function(table, database) {
+    const sql = "SELECT column_name FROM information_schema.columns WHERE table_name = ? AND table_schema = ?"
+    return poolPromise.then(async (p) => {
+        const conn = await p.getConnection();
+        const start = performance.now();
+        const results = await conn.query(sql, [table, database]);
+        const end = performance.now();
+        console.log(
+            '[%d ms] %d %s',
+            (end - start).toFixed(3),
+            conn.connection.threadId,
+            sql,
+        );
+        conn.release();
+        return results;
     }).then((results) => {
         const all = [];
         const metaFields = [];
@@ -126,9 +138,9 @@ const tableFields = function(table) {
             }
         });
         return {
-            all: all,
-            metaFields: metaFields,
-            requested: requested
+            all,
+            metaFields,
+            requested,
         }
     })
 }
