@@ -1,4 +1,8 @@
+"use strict";
+
 const crypto = require('crypto');
+const { performance } = require('perf_hooks');
+
 const mysql = require('promise-mysql');
 
 const config = require('../config');
@@ -9,12 +13,25 @@ const poolPromise = mysql.createPool({
     connectionLimit: config.db.connectionLimit,
     host: config.db.host,
     user: config.db.user,
-    password: config.db.password
+    password: config.db.password,
 });
 
 let pool;
 poolPromise.then((p) => {
     pool = p;
+
+    pool.on('acquire', function (connection) {
+        console.log('Connection %d acquired', connection.threadId);
+    });
+
+    pool.on('enqueue', function () {
+        console.log('Waiting for available connection slot');
+    });
+
+    pool.on('release', function (connection) {
+        console.log('Connection %d released', connection.threadId);
+    });
+
 })
 
 const getData = function(req, res, sqlParams) {
@@ -24,7 +41,7 @@ const getData = function(req, res, sqlParams) {
 
     return queryDatabase(config.auth.database, datasetSql, [shaToken]).then((results) => {
         dataset = results[0].dataset;
-        return tableFields(sqlParams.table);
+        return tableFields(sqlParams.table, dataset);
     }).then((results) => {
         fields = results;
 
@@ -66,24 +83,47 @@ const getData = function(req, res, sqlParams) {
 }
 
 const queryDatabase = function(database, sql, values) {
+    console.trace('queryDatabase', { database, sql, values });
     let connection;
     return poolPromise.then((p) => {
         return p.getConnection();
-    }).then((conn) => {
+    }).then(async (conn) => {
         connection = conn;
-        conn.changeUser({database: database});
-        console.log(sql);
-        return conn.query(sql, values);
+        conn.changeUser({ database });
+
+        const start = performance.now();
+        const results = await conn.query(sql, values);
+        const end = performance.now();
+
+        console.log(
+            '[%d ms] %d %s',
+            (end - start).toFixed(3),
+            conn.connection.threadId,
+            sql,
+        );
+
+        return results;
     }).then((results) => {
         connection.release();
         return results;
     });
 }
 
-const tableFields = function(table) {
-    const sql = "SELECT column_name FROM information_schema.columns WHERE table_name = ?"
-    return poolPromise.then((p) => {
-        return p.query(sql, [table]);
+const tableFields = function(table, database) {
+    const sql = "SELECT column_name FROM information_schema.columns WHERE table_name = ? AND table_schema = ?"
+    return poolPromise.then(async (p) => {
+        const conn = await p.getConnection();
+        const start = performance.now();
+        const results = await conn.query(sql, [table, database]);
+        const end = performance.now();
+        console.log(
+            '[%d ms] %d %s',
+            (end - start).toFixed(3),
+            conn.connection.threadId,
+            sql,
+        );
+        conn.release();
+        return results;
     }).then((results) => {
         const all = [];
         const metaFields = [];
@@ -98,9 +138,9 @@ const tableFields = function(table) {
             }
         });
         return {
-            all: all,
-            metaFields: metaFields,
-            requested: requested
+            all,
+            metaFields,
+            requested,
         }
     })
 }
