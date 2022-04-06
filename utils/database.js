@@ -83,7 +83,6 @@ const getData = function(req, res, sqlParams) {
 }
 
 const queryDatabase = function(database, sql, values) {
-    console.trace('queryDatabase', { database, sql, values });
     let connection;
     return poolPromise.then((p) => {
         return p.getConnection();
