@@ -44,9 +44,9 @@ function buildClass(row, hrefBase, metaFields) {
         };
     }
   
-    if (row.termsSourcedId) {
+    if (row.termSourcedId) {
         clazz.terms = [];
-        row.termsSourcedId.toString().split(",").forEach(function(sid) {
+        row.termSourcedId.toString().split(",").forEach(function(sid) {
             clazz.terms.push({
                 href: `${hrefBase}/academicSession/${sid}`,
                 sourcedId: sid,
