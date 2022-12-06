@@ -1,6 +1,7 @@
 const db = require('../../../utils/database');
 const router = require('express').Router();
 const table = 'academicsessions';
+const academicSessionsService = require('../../../services/academicSessionsService');
 
 function buildAcademicSession(row, hrefBase, metaFields) {
     const academicSession = {
@@ -43,19 +44,26 @@ function buildAcademicSession(row, hrefBase, metaFields) {
 };
 
 function queryAcademicSession(req, res, next, type) {
-    db.getData(req, res, {
-        table: table,
-        queryValues: [req.params.id, type],
-        additionalWhereStmts: `sourcedId = ?${type ? ' AND type = ?' : ''}`
-    }).then((data) => {
-        if (data.results.length === 0) {
-            utils.reportNotFound(res, 'Academic session not found');
-        } else {
-            res.json({
-                academicSession: buildAcademicSession(data.results[0], data.hrefBase, data.fields.metaFields)
-            });
-        }
-    });
+    // db.getData(req, res, {
+    //     table: table,
+    //     queryValues: [req.params.id, type],
+    //     additionalWhereStmts: `sourcedId = ?${type ? ' AND type = ?' : ''}`
+    // }).then((data) => {
+    //     if (data.results.length === 0) {
+    //         utils.reportNotFound(res, 'Academic session not found');
+    //     } else {
+    //         res.json({
+    //             academicSession: buildAcademicSession(data.results[0], data.hrefBase, data.fields.metaFields)
+    //         });
+    //     }
+    // });
+
+    try {
+        let responsePayload = academicSessionsService.queryAcademicSession(req,res);
+        res.json(responsePayload);
+    } catch (e){
+        utils.reportNotFound(res,e.message);
+    }
 };
 
 function queryAcademicSessions(req, res, next, type) {
