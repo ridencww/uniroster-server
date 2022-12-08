@@ -24,6 +24,28 @@ async function queryAcademicSession(req, res){
     return responseJSON;
 }
 
+async function queryAcademicSessions(req,res, type) {
+
+    let responseJSON = {};
+    await db.getData(req, res, {
+        table: table,
+        queryValues: [type],
+        additionalWhereStmts: type ? 'type = ?' : ''
+    }).then((data) => {
+        if (data) {
+            const academicSessions = [];
+            data.results.forEach(function(row) {
+                academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
+            });
+            responseJSON = {
+                academicSessions: academicSessions
+            };
+        }
+    });
+
+    return responseJSON;
+};
+
 function buildAcademicSession(row, hrefBase, metaFields) {
     const academicSession = {
         sourcedId: row.sourcedId,
@@ -63,10 +85,6 @@ function buildAcademicSession(row, hrefBase, metaFields) {
 
     return academicSession;
 };
-
-function queryAcademicSessions(req,res){
-
-}
 
 module.exports = {
     queryAcademicSession:queryAcademicSession,

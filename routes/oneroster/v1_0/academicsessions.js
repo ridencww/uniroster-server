@@ -67,21 +67,27 @@ function queryAcademicSession(req, res, next, type) {
 };
 
 function queryAcademicSessions(req, res, next, type) {
-    db.getData(req, res, {
-        table: table,
-        queryValues: [type],
-        additionalWhereStmts: type ? 'type = ?' : ''
-    }).then((data) => {
-        if (data) {
-            const academicSessions = [];
-            data.results.forEach(function(row) {
-                academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
-            });
-            res.json({
-                academicSessions: academicSessions
-            });
-        }
-    });
+    // db.getData(req, res, {
+    //     table: table,
+    //     queryValues: [type],
+    //     additionalWhereStmts: type ? 'type = ?' : ''
+    // }).then((data) => {
+    //     if (data) {
+    //         const academicSessions = [];
+    //         data.results.forEach(function(row) {
+    //             academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
+    //         });
+    //         res.json({
+    //             academicSessions: academicSessions
+    //         });
+    //     }
+    // });
+    try {
+        let responsePayload = academicSessionsService.queryAcademicSessions(req, res, type);
+        res.json(responsePayload);
+    } catch (e){
+        utils.reportNotFound(res,e.message);
+    }
 };
 
 function queryAcademicSessionsForSchool(req, res, next, type) {
