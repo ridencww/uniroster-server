@@ -88,7 +88,7 @@ function queryAcademicSessions(req, res, next, type) {
     } catch (e){
         utils.reportNotFound(res,e.message);
     }
-};
+}
 
 function queryAcademicSessionsForSchool(req, res, next, type) {
     db.getData(req, res, {
@@ -107,7 +107,15 @@ function queryAcademicSessionsForSchool(req, res, next, type) {
             res.json({academicSessions: academicSessions});
         }
     });
-};
+
+    try{
+        let academicSessionsPayload = academicSessionsService.queryAcademicSessionsForSchool(req, res, next, type);
+        res.json(academicSessionsPayload);
+    } catch (e) {
+        utils.reportNotFound(res,e.message);
+    }
+
+}
 
 router.get('/academicSessions', function(req, res, next) {
     queryAcademicSessions(req, res, next);

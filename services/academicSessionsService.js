@@ -44,7 +44,34 @@ async function queryAcademicSessions(req,res, type) {
     });
 
     return responseJSON;
-};
+}
+
+function queryAcademicSessionsForSchool(req){
+
+    let academicSessionsJSON = [];
+
+    db.getData(req, res, {
+        table: table,
+        queryValues: [req.params.id, type],
+        distinct: true,
+        fromStmt: 'FROM academicsessions a, classes c ',
+        wherePrefix: 'a',
+        additionalWhereStmts: `c.termSourcedId = a.sourcedId AND c.schoolSourcedId = ?${type ? ' AND type = ?' : ''}`
+    }).then((data) => {
+        if (data) {
+            const academicSessions = [];
+            data.results.forEach(function(row) {
+                academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
+            });
+
+            academicSessionsJSON = {
+                academicSessions: academicSessions
+            };
+        }
+    });
+
+    return academicSessionsJSON;
+}
 
 function buildAcademicSession(row, hrefBase, metaFields) {
     const academicSession = {
@@ -84,10 +111,11 @@ function buildAcademicSession(row, hrefBase, metaFields) {
     }
 
     return academicSession;
-};
+}
 
 module.exports = {
     queryAcademicSession:queryAcademicSession,
-    queryAcademicSessions:queryAcademicSessions
+    queryAcademicSessions:queryAcademicSessions,
+    queryAcademicSessionsForSchool:queryAcademicSessionsForSchool
 };
 
