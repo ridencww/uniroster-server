@@ -64,24 +64,9 @@ function queryAcademicSession(req, res, next, type) {
     } catch (e){
         utils.reportNotFound(res,e.message);
     }
-};
+}
 
 function queryAcademicSessions(req, res, next, type) {
-    // db.getData(req, res, {
-    //     table: table,
-    //     queryValues: [type],
-    //     additionalWhereStmts: type ? 'type = ?' : ''
-    // }).then((data) => {
-    //     if (data) {
-    //         const academicSessions = [];
-    //         data.results.forEach(function(row) {
-    //             academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
-    //         });
-    //         res.json({
-    //             academicSessions: academicSessions
-    //         });
-    //     }
-    // });
     try {
         let responsePayload = academicSessionsService.queryAcademicSessions(req, res, type);
         res.json(responsePayload);
@@ -91,22 +76,22 @@ function queryAcademicSessions(req, res, next, type) {
 }
 
 function queryAcademicSessionsForSchool(req, res, next, type) {
-    db.getData(req, res, {
-        table: table,
-        queryValues: [req.params.id, type],
-        distinct: true,
-        fromStmt: 'FROM academicsessions a, classes c ',
-        wherePrefix: 'a',
-        additionalWhereStmts: `c.termSourcedId = a.sourcedId AND c.schoolSourcedId = ?${type ? ' AND type = ?' : ''}`
-    }).then((data) => {
-        if (data) {
-            const academicSessions = [];
-            data.results.forEach(function(row) {
-            academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
-            });
-            res.json({academicSessions: academicSessions});
-        }
-    });
+    // db.getData(req, res, {
+    //     table: table,
+    //     queryValues: [req.params.id, type],
+    //     distinct: true,
+    //     fromStmt: 'FROM academicsessions a, classes c ',
+    //     wherePrefix: 'a',
+    //     additionalWhereStmts: `c.termSourcedId = a.sourcedId AND c.schoolSourcedId = ?${type ? ' AND type = ?' : ''}`
+    // }).then((data) => {
+    //     if (data) {
+    //         const academicSessions = [];
+    //         data.results.forEach(function(row) {
+    //         academicSessions.push(buildAcademicSession(row, data.hrefBase, data.fields.metaFields));
+    //         });
+    //         res.json({academicSessions: academicSessions});
+    //     }
+    // });
 
     try{
         let academicSessionsPayload = academicSessionsService.queryAcademicSessionsForSchool(req, res, next, type);

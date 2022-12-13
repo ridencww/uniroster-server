@@ -46,7 +46,7 @@ async function queryAcademicSessions(req,res, type) {
     return responseJSON;
 }
 
-function queryAcademicSessionsForSchool(req){
+function queryAcademicSessionsForSchool(req, res, next, type){
 
     let academicSessionsJSON = [];
 
