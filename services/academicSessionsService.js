@@ -46,11 +46,11 @@ async function queryAcademicSessions(req,res, type) {
     return responseJSON;
 }
 
-function queryAcademicSessionsForSchool(req, res, next, type){
+async function queryAcademicSessionsForSchool(req, res, next, type){
 
     let academicSessionsJSON = [];
 
-    db.getData(req, res, {
+    await db.getData(req, res, {
         table: table,
         queryValues: [req.params.id, type],
         distinct: true,
