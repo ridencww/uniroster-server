@@ -6,7 +6,6 @@ const bodyParser = require('body-parser')
 const oauthServer = require('./oauth/server')
 
 const app = express()
-const port = 3030
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
