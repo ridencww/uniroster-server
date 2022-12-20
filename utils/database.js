@@ -58,7 +58,7 @@ const getData = function(req, res, sqlParams) {
             from = `FROM ${sqlParams.table}`;
         }
 
-        const where = buildWhereStmt(req, res, fields, sqlParams,next);
+        const where = buildWhereStmt(req, res, fields, sqlParams);
         if (where === null) return null;
 
         const orderBy = buildOrderByStmt(req, res, fields);
@@ -249,7 +249,7 @@ const buildSelectStmt = function(req, res, tableFields, sqlParams) {
     }
 };
   
-var buildWhereStmt = function(req, res, tableFields, sqlParams,next) {
+var buildWhereStmt = function(req, res, tableFields, sqlParams) {
     let where = '';
   
     const alias = sqlParams.wherePrefix ? `${sqlParams.wherePrefix}.` : '';
