@@ -199,7 +199,7 @@ const buildOrderByStmt = function(req, res, tableFields) {
     }
 };
   
-const buildSelectStmt = function(req, res, tableFields, sqlParams,next) {
+const buildSelectStmt = function(req, res, tableFields, sqlParams) {
     const alias = sqlParams.selectPrefix ? `${sqlParams.selectPrefix}.` : "";
     let select = sqlParams.distinct ? 'SELECT DISTINCT ' : 'SELECT ';
 
