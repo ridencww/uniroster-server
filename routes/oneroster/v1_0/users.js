@@ -58,7 +58,7 @@ function buildUser(row, hrefBase, metaFields) {
     }
 
     return user;
-};
+}
 
 function buildUsersFromData(res, data) {
     if (data) {
@@ -68,7 +68,7 @@ function buildUsersFromData(res, data) {
         });
         res.json({users: users});
     }
-};
+}
 
 function queryUser(req, res, next, role) {
     db.getData(req, res, {
@@ -86,7 +86,7 @@ function queryUser(req, res, next, role) {
             res.json({user: buildUser(data.results[0], data.hrefBase, data.fields.metaFields)});
         }
     });
-};
+}
 
 function queryUsers(req, res, next, role) {
     db.getData(req, res, {
@@ -100,7 +100,7 @@ function queryUsers(req, res, next, role) {
     }).then((data) => {
         buildUsersFromData(res, data);
     });
-};
+}
 
 function queryUsersByClass(req, res, next, role) {
     let userQualifier = '';

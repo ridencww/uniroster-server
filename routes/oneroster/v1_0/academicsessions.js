@@ -2,8 +2,7 @@ const db = require('../../../utils/database');
 const utils = require("../../../utils/utils");
 const router = require('express').Router();
 const table = 'academicsessions';
-const {buildSelectStmt} = require("../../../utils/database");
-const crypto = require("crypto");
+
 
 function buildAcademicSession(row, hrefBase, metaFields) {
     const academicSession = {

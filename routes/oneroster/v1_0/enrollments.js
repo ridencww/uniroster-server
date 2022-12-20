@@ -24,7 +24,7 @@ function buildEnrollment(row, hrefBase, metaFields) {
     }
   
     return enrollment;
-};
+}
 
 function buildEnrollmentsFromData(res, data) {
     const enrollments = [];
@@ -32,7 +32,7 @@ function buildEnrollmentsFromData(res, data) {
         enrollments.push(buildEnrollment(row, data.hrefBase, data.fields.metaFields));
     });
     res.json({enrollments: enrollments});
-};
+}
 
 function queryEnrollment(req, res, next) {
     db.getData(req, res, {
@@ -48,7 +48,7 @@ function queryEnrollment(req, res, next) {
             })
         }
     });
-};
+}
 
 function queryEnrollments(req, res, next) {
     db.getData(req, res, {
@@ -56,7 +56,7 @@ function queryEnrollments(req, res, next) {
     }).then((data) => {
         if (data) buildEnrollmentsFromData(res, data);
     });
-};
+}
 
 function queryEnrollmentsBySchool(req, res, next) {
     db.getData(req, res, {
@@ -66,7 +66,7 @@ function queryEnrollmentsBySchool(req, res, next) {
     }).then((data) => {
         if (data) buildEnrollmentsFromData(res, data);
     });
-};
+}
 
 router.get('/enrollments', function(req, res, next) {
   queryEnrollments(req, res, next);

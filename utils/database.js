@@ -1,5 +1,4 @@
 "use strict";
-import createError from "http-errors";
 const crypto = require('crypto');
 const { performance } = require('perf_hooks');
 
@@ -8,7 +7,6 @@ const mysql = require('promise-mysql');
 const config = require('../config');
 const tokenizer = require('./tokenizer');
 const utils = require('./utils');
-//const createError = require("http-errors");
 
 const poolPromise = mysql.createPool({
     connectionLimit: config.db.connectionLimit,
@@ -78,9 +76,8 @@ const getData = function(req, res, sqlParams) {
             results: results
         }
     }).catch((err) => {
-        utils.reportServerError(res, err); // todo remember to throw error in service
+        utils.reportServerError(res, err);
 
-        //createError(500, 'Internal server error.');
         return null;
     });
 }

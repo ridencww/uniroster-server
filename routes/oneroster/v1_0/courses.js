@@ -59,7 +59,7 @@ function queryCourse(req, res, next) {
             });
         }
     });
-};
+}
 
 function queryCourses(req, res, next) {
     db.getData(req, res, {
@@ -74,7 +74,7 @@ function queryCourses(req, res, next) {
             res.json({courses: courses});
         }
     });
-};
+}
 
 function queryCoursesForSchool(req, res, next) {
     db.getData(req, res, {
@@ -90,7 +90,7 @@ function queryCoursesForSchool(req, res, next) {
             res.json({courses: courses});
         }
     });
-};
+}
 
 router.get('/courses', function(req, res, next) {
     queryCourses(req, res, next);

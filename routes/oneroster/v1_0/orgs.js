@@ -40,7 +40,7 @@ function buildOrg(row, hrefBase, metaFields) {
     }
   
     return org;
-};
+}
 
 function queryOrg(req, res, next, type) {
     db.getData(req, res, {
@@ -56,7 +56,7 @@ function queryOrg(req, res, next, type) {
             });
         }
     });
-};
+}
 
 function queryOrgs(req, res, next, type) {
     db.getData(req, res, {
