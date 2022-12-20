@@ -67,7 +67,7 @@ function queryAcademicSessions(req, res, next, type) {
         table: table,
         queryValues: [type],
         additionalWhereStmts: type ? 'type = ?' : ''
-    }, next).then((data) => {
+    }).then((data) => {
         if (data) {
             const academicSessions = [];
             data.results.forEach(function (row) {
