@@ -44,7 +44,7 @@ const getData = function(req, res, sqlParams) {
     }).then((results) => {
         fields = results;
 
-        const select = buildSelectStmt(req, res, fields, sqlParams,next);
+        const select = buildSelectStmt(req, res, fields, sqlParams);
         if (select === null) return null;
 
         let from;
