@@ -7,7 +7,6 @@ const oauthServer = require('./oauth/server')
 const createError = require("http-errors");
 
 const app = express()
-const port = 3030
 
 
 

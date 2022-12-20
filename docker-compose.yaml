@@ -10,6 +10,7 @@ services:
       - .:/uniroster-server
     environment:
       MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_HOST: '%'
   uniroster:
     container_name: uniroster-dev
     restart: unless-stopped
@@ -20,3 +21,6 @@ services:
       - "80:80"
     volumes:
       - .:/uniroster-server
+    environment:
+      ENABLE_SETTINGS_ENDPOINT: true
+      DB_HOSTNAME: mariadb

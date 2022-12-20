@@ -1,12 +1,12 @@
 {
     "name": "uniroster-server",
-    "version": "1.0.33",
+    "version": "1.0.34",
     "description": "Rostering server supporting multiple protocols (e.g., OneRoster, Ed-Fi, etc.)",
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
-        "start:dev": "docker-compose up -d && npm run init-db:dev",
-        "init-db:dev": "docker exec -it mysql /uniroster-server/sql/dev_setup.sh"
+        "start:dev": "docker compose up -d && npm run init-db:dev",
+        "init-db:dev": "docker compose exec mariadb /uniroster-server/sql/dev_setup.sh"
     },
     "dependencies": {
         "body-parser": "1.19.0",
