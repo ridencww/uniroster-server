@@ -4,9 +4,12 @@ const express = require('express');
 const config = require('./config');
 const bodyParser = require('body-parser')
 const oauthServer = require('./oauth/server')
+const createError = require("http-errors");
 
 const app = express()
 const port = 3030
+
+
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -15,6 +18,14 @@ app.use('/oauth', require('./routes/auth'))
 app.use('/learningdata', oauthServer.authenticate(), require('./routes/routes'));
 
 app.use('/settings', require('./routes/settings'));
+
+app.use((err, req, res, next) => {
+    if (createError.isHttpError(err)) {
+        res.status(err.status).send(err.message);
+    } else {
+        next(err);
+    }
+});
 
 if (config.httpActive == true) {
     const http = require('http');

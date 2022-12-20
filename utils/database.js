@@ -1,5 +1,5 @@
 "use strict";
-
+import createError from "http-errors";
 const crypto = require('crypto');
 const { performance } = require('perf_hooks');
 
@@ -8,6 +8,7 @@ const mysql = require('promise-mysql');
 const config = require('../config');
 const tokenizer = require('./tokenizer');
 const utils = require('./utils');
+//const createError = require("http-errors");
 
 const poolPromise = mysql.createPool({
     connectionLimit: config.db.connectionLimit,
@@ -45,7 +46,7 @@ const getData = function(req, res, sqlParams) {
     }).then((results) => {
         fields = results;
 
-        const select = buildSelectStmt(req, res, fields, sqlParams);
+        const select = buildSelectStmt(req, res, fields, sqlParams,next);
         if (select === null) return null;
 
         let from;
@@ -59,7 +60,7 @@ const getData = function(req, res, sqlParams) {
             from = `FROM ${sqlParams.table}`;
         }
 
-        const where = buildWhereStmt(req, res, fields, sqlParams);
+        const where = buildWhereStmt(req, res, fields, sqlParams,next);
         if (where === null) return null;
 
         const orderBy = buildOrderByStmt(req, res, fields);
@@ -77,7 +78,9 @@ const getData = function(req, res, sqlParams) {
             results: results
         }
     }).catch((err) => {
-        utils.reportServerError(res, err);
+        utils.reportServerError(res, err); // todo remember to throw error in service
+
+        //createError(500, 'Internal server error.');
         return null;
     });
 }
@@ -152,6 +155,7 @@ const buildLimitStmt = function(req, res, sqlParams) {
     } else if (req.query.limit) {
         if (isNaN(Number(req.query.limit))) {
             utils.reportBadRequest(res, `'req.query.limit' is not a valid limit`);
+
             return null;
         }
         limit += Number(req.query.limit);
@@ -165,6 +169,7 @@ const buildLimitStmt = function(req, res, sqlParams) {
     } else if (req.query.offset) {
         if (isNaN(Number(req.query.offset))) {
             utils.reportBadRequest(res, `'req.query.offset' is not a valid offset`);
+
             return null;
         }
         offset += Number(req.query.offset);
@@ -179,12 +184,14 @@ const buildOrderByStmt = function(req, res, tableFields) {
     if (req.query.sort) {
         if (tableFields && tableFields.all.indexOf(req.query.sort) == -1) {
             utils.reportBadRequest(res, "'" + req.query.sort + "' is not a valid field.");
+
             return null;
         }
 
         regex = new RegExp(/^(asc|desc)$/i);
         if (req.query.orderBy && !regex.test(req.query.orderBy)) {
             utils.reportBadRequest(res, "'" + req.query.orderBy + "' is not a valid orderBy value.");
+
             return null;
         }
 
@@ -195,7 +202,7 @@ const buildOrderByStmt = function(req, res, tableFields) {
     }
 };
   
-const buildSelectStmt = function(req, res, tableFields, sqlParams) {
+const buildSelectStmt = function(req, res, tableFields, sqlParams,next) {
     const alias = sqlParams.selectPrefix ? `${sqlParams.selectPrefix}.` : "";
     let select = sqlParams.distinct ? 'SELECT DISTINCT ' : 'SELECT ';
 
@@ -214,7 +221,7 @@ const buildSelectStmt = function(req, res, tableFields, sqlParams) {
             }
       
             // If validFields supplied, field must be in list
-            if (tableFields && tableFields.all.indexOf(field) == -1) {
+            if (tableFields && tableFields.all.indexOf(field) === -1) {
                 utils.reportBadRequest(res, `'${field}' is not a valid field.`);
                 badFields.push(field);
                 return;
@@ -232,6 +239,7 @@ const buildSelectStmt = function(req, res, tableFields, sqlParams) {
         if (badFields.length > 0) {
             const message = badFields.length === 1 ? `'${badFields[0]}' is not a valid field` : `${badFields.join(', ')} are not valid fields`;
             utils.reportBadRequest(res, message);
+
             return null;
         }
     
@@ -244,7 +252,7 @@ const buildSelectStmt = function(req, res, tableFields, sqlParams) {
     }
 };
   
-var buildWhereStmt = function(req, res, tableFields, sqlParams) {
+var buildWhereStmt = function(req, res, tableFields, sqlParams,next) {
     let where = '';
   
     const alias = sqlParams.wherePrefix ? `${sqlParams.wherePrefix}.` : '';
@@ -264,6 +272,7 @@ var buildWhereStmt = function(req, res, tableFields, sqlParams) {
                     case 0:
                         if (token.type != 'field' || tableFields.all.indexOf(token.value) == -1) {
                             utils.reportBadRequest(res, "Expected a valid field identifier, but got  '" + token.value + "'");
+
                             where = null;
                             state = 4;
                         } else {
@@ -275,6 +284,7 @@ var buildWhereStmt = function(req, res, tableFields, sqlParams) {
                     case 1:
                         if (token.type != 'operator') {
                             utils.reportBadRequest(res, "Expected a valid predicate, but got  '" + token.value + "'");
+
                             where = null;
                             state = 4;
                         } else {
